@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genre - Mineplay</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    @font-face {
+      font-family: 'Plus Jakarta Sans';
+      src: url('font/jakarta-sans.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root {
+      --md-sys-color-background: #000000;
+      --md-sys-color-surface: #181818;
+      --md-sys-color-surface-variant: #121212;
+      
+      --md-sys-color-primary: #ffffff;
+      --md-sys-color-on-primary: #000000;
+      --md-sys-color-on-background: #ffffff;
+      --md-sys-color-on-surface: #ffffff;
+      --md-sys-color-on-surface-variant: #a0a0a0;
+
+      --font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      font-family: var(--font-family);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      position: relative;
+    }
+
+    button, select {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: inherit;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .hero-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 250px;
+      background-size: cover;
+      background-position: center 20%;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      z-index: 0;
+      pointer-events: none;
+      will-change: opacity;
+    }
+
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 75%, var(--md-sys-color-background) 100%);
+    }
+
+    .hero-bg.loaded {
+      opacity: 1;
+    }
+
+    .hero-header {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 85px;
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .header-content {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      pointer-events: auto;
+    }
+
+    .back-btn, .filter-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .back-btn svg, .filter-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: #ffffff;
+      transition: fill 0.3s ease;
+      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.5));
+    }
+
+    .header-title-large {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      color: #ffffff;
+      text-transform: capitalize;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(5px);
+      padding: 12px 18px;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      flex: 1;
+      height: 50px;
+    }
+
+    .ripple-effect {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(0);
+      animation: smoothRipple 0.6s linear forwards;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes smoothRipple {
+      0% { transform: scale(0); opacity: 0.6; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    .content-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .main-scroll-area {
+      flex: 1;
+      height: 100%;
+      overflow-y: auto;
+      padding: 110px 20px 40px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      touch-action: pan-y;
+    }
+
+    .main-scroll-area::-webkit-scrollbar {
+      display: none;
+    }
+
+    .manga-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: opacity 0.25s ease;
+    }
+
+    .manga-grid.reset-fade {
+      opacity: 0;
+    }
+
+    .ranking-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      padding: 8px 10px;
+      background-color: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .ranking-card:active {
+      background-color: rgba(255, 255, 255, 0.08);
+      transform: scale(0.98);
+    }
+
+    .ranking-thumb-img {
+      width: 52px;
+      height: 70px;
+      object-fit: cover;
+      background-color: var(--md-sys-color-surface-variant);
+      flex-shrink: 0;
+      border-radius: 6px;
+    }
+
+    .ranking-info {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .ranking-item-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--md-sys-color-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .ranking-item-sub {
+      display: inline-block;
+      font-size: 10px;
+      color: #8E8E93;
+      padding: 2px 0;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .ranking-item-stat {
+      font-size: 12px;
+      color: var(--md-sys-color-on-surface-variant);
+      font-weight: 600;
+      flex-shrink: 0;
+      margin-left: 6px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--md-sys-color-on-surface-variant);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .skeleton-box {
+      background: linear-gradient(
+        90deg, 
+        rgba(255, 255, 255, 0.05) 0%, 
+        rgba(255, 255, 255, 0.12) 50%, 
+        rgba(255, 255, 255, 0.05) 100%
+      );
+      background-size: 200% 100%;
+      animation: skeletonShimmer 1.5s infinite linear;
+    }
+
+    @keyframes skeletonShimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .fade-in {
+      animation: fadeInContent 0.35s ease-in-out forwards;
+    }
+
+    @keyframes fadeInContent {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0, 0, 0, 0.7);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .sheet-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #1c1c1e;
+      border-radius: 28px 28px 0 0;
+      padding: 24px 20px 28px;
+      z-index: 201;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      touch-action: none;
+    }
+
+    .bottom-sheet.active {
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .bottom-sheet.closing {
+      pointer-events: none !important;
+    }
+
+    .bottom-sheet.dragging {
+      transition: none !important;
+    }
+
+    .sheet-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .sheet-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .btn-reset-header {
+      font-size: 15px;
+      font-weight: 500;
+      color: #a0a0a0;
+      cursor: pointer;
+      background: transparent;
+      padding: 6px 12px;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sheet-body {
+      overflow-y: auto;
+      flex: 1;
+      scrollbar-width: none;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      touch-action: pan-y;
+    }
+
+    .sheet-body::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-section-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #8e8e93;
+      margin-bottom: 12px;
+    }
+
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 30px;
+      background: #2c2c2e;
+      color: #e5e5ea;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .filter-chip::before {
+      content: '';
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid #8e8e93;
+      box-sizing: border-box;
+      display: inline-block;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    .filter-chip.selected {
+      background: #3a3a3c;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .filter-chip.selected::before {
+      border-color: #ffffff;
+      background-color: #ffffff;
+      box-shadow: inset 0 0 0 3px #3a3a3c;
+    }
+
+    .sheet-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .btn-cancel, .btn-apply {
+      flex: 1;
+      height: 52px;
+      border-radius: 26px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      transition: opacity 0.2s ease;
+    }
+
+    .btn-cancel {
+      background: #2c2c2e;
+      color: #ffffff;
+    }
+
+    .btn-apply {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    .btn-cancel:active, .btn-apply:active {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero-bg" id="heroBg"></div>
+
+  <div class="hero-header" id="heroHeader">
+    <div class="header-content">
+      <button class="back-btn" id="backBtn" title="Kembali">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      </button>
+      <div class="header-title-large" id="genreTitleDisplay">Loading...</div>
+      <button class="filter-btn" id="filterBtn" title="Filter">
+        <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="content-wrapper">
+    <div class="main-scroll-area" id="mainScrollArea">
+      <div class="manga-grid" id="genreMangaGrid"></div>
+    </div>
+  </div>
+
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+  <div class="bottom-sheet" id="bottomSheet">
+    <div class="sheet-header-top">
+      <div class="sheet-title">Filter & Sort</div>
+      <button class="btn-reset-header" id="btnResetFilter">Reset</button>
+    </div>
+    <div class="sheet-body">
+      <div>
+        <div class="filter-section-title">Format</div>
+        <div class="chip-group" id="formatChipGroup">
+          <div class="filter-chip selected" data-value="ALL">Semua</div>
+          <div class="filter-chip" data-value="MANGA">Manga</div>
+          <div class="filter-chip" data-value="MANHWA">Manhwa</div>
+          <div class="filter-chip" data-value="MANHUA">Manhua</div>
+          <div class="filter-chip" data-value="ONE_SHOT">One Shot</div>
+        </div>
+      </div>
+      <div>
+        <div class="filter-section-title">Urutkan</div>
+        <div class="chip-group" id="sortChipGroup">
+          <div class="filter-chip selected" data-value="POPULARITY_DESC">Popularity</div>
+          <div class="filter-chip" data-value="SCORE_DESC">Average Score</div>
+          <div class="filter-chip" data-value="FAVOURITES_DESC">Favorites</div>
+          <div class="filter-chip" data-value="TITLE_ROMAJI">Judul (A-Z)</div>
+          <div class="filter-chip" data-value="UPDATED_AT_DESC">Terbaru</div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" id="btnCancelFilter">Cancel</button>
+      <button class="btn-apply" id="btnApplyFilter">Apply</button>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://svyqklceysmpvkktavou.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_-9Q7DxILIR54gV7jCBAy7g_VLAokyF3';
+    const ANILIST_URL = 'https://graphql.anilist.co';
+
+    let supabaseClient = null;
+    let currentGenre = 'Action';
+    let rawMangaList = [];
+    let isDataLoaded = false;
+
+    let selectedFormat = 'ALL';
+    let selectedSort = 'POPULARITY_DESC';
+    let isSheetOpen = false;
+
+    function openMangaDetail(mangaId) {
+      const targetPath = `https://mineread.vercel.app/apps/bridge/mangadetail.html?id=${mangaId}`;
+      if (window.Android && typeof window.Android.openPage === 'function') {
+        window.Android.openPage(targetPath);
+      } else {
+        window.location.href = targetPath;
+      }
+    }
+
+    function formatNumber(num) {
+      if (!num) return '0';
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num.toString();
+    }
+
+    function applyRippleToElement(element) {
+      element.addEventListener('pointerdown', (e) => {
+        const oldRipple = element.querySelector('.ripple-effect');
+        if (oldRipple) oldRipple.remove();
+
+        const rect = element.getBoundingClientRect();
+        const diameter = Math.max(rect.width, rect.height);
+        const radius = diameter / 2;
+
+        let clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : rect.left + rect.width / 2);
+        let clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : rect.top + rect.height / 2);
+
+        const circle = document.createElement('span');
+        circle.style.width = circle.style.height = `${diameter}px`;
+        circle.style.left = `${clientX - rect.left - radius}px`;
+        circle.style.top = `${clientY - rect.top - radius}px`;
+        circle.classList.add('ripple-effect');
+
+        element.appendChild(circle);
+
+        setTimeout(() => {
+          if (circle && circle.parentNode) circle.remove();
+        }, 600);
+      });
+    }
+
+    function initRipples() {
+      const staticTargets = document.querySelectorAll('.back-btn, .filter-btn, .filter-chip, .btn-cancel, .btn-apply, .btn-reset-header');
+      staticTargets.forEach(applyRippleToElement);
+    }
+
+    document.getElementById('backBtn').addEventListener('click', () => {
+      if (isSheetOpen) {
+        closeBottomSheet();
+        return;
+      }
+      if (window.Android && typeof window.Android.goBack === 'function') {
+        window.Android.goBack();
+      } else if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+
+    const backdrop = document.getElementById('sheetBackdrop');
+    const bottomSheet = document.getElementById('bottomSheet');
+    const filterBtn = document.getElementById('filterBtn');
+
+    function openBottomSheet() {
+      if (isSheetOpen) return;
+      isSheetOpen = true;
+      bottomSheet.classList.remove('closing');
+      backdrop.classList.add('active');
+      bottomSheet.classList.add('active');
+      window.history.pushState({ sheetOpen: true }, '');
+    }
+
+    function closeBottomSheetUI() {
+      if (!isSheetOpen) return;
+      isSheetOpen = false;
+      bottomSheet.classList.add('closing');
+      backdrop.classList.remove('active');
+      bottomSheet.classList.remove('active');
+      bottomSheet.style.transform = '';
+
+      setTimeout(() => {
+        bottomSheet.classList.remove('closing');
+      }, 300);
+    }
+
+    function closeBottomSheet() {
+      if (isSheetOpen) {
+        window.history.back();
+      }
+    }
+
+    window.addEventListener('popstate', () => {
+      if (isSheetOpen) {
+        closeBottomSheetUI();
+      }
+    });
+
+    filterBtn.addEventListener('click', openBottomSheet);
+    backdrop.addEventListener('click', closeBottomSheet);
+    document.getElementById('btnCancelFilter').addEventListener('click', closeBottomSheet);
+
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    bottomSheet.addEventListener('touchstart', (e) => {
+      if (!isSheetOpen || e.target.closest('.sheet-body')) return;
+      startY = e.touches[0].clientY;
+      isDragging = true;
+      bottomSheet.classList.add('dragging');
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!isDragging || !isSheetOpen) return;
+      currentY = e.touches[0].clientY;
+      const deltaY = currentY - startY;
+      if (deltaY > 0) {
+        bottomSheet.style.transform = `translateY(${deltaY}px)`;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+      if (!isDragging || !isSheetOpen) return;
+      isDragging = false;
+      bottomSheet.classList.remove('dragging');
+      const deltaY = currentY - startY;
+      if (deltaY > 100) {
+        closeBottomSheet();
+      } else {
+        bottomSheet.style.transform = '';
+      }
+      startY = 0;
+      currentY = 0;
+    });
+
+    function setupChipSelection(containerId, callback) {
+      const container = document.getElementById(containerId);
+      container.addEventListener('click', (e) => {
+        const chip = e.target.closest('.filter-chip');
+        if (!chip) return;
+        container.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        callback(chip.dataset.value);
+      });
+    }
+
+    let tempFormat = selectedFormat;
+    let tempSort = selectedSort;
+
+    setupChipSelection('formatChipGroup', (val) => { tempFormat = val; });
+    setupChipSelection('sortChipGroup', (val) => { tempSort = val; });
+
+    document.getElementById('btnResetFilter').addEventListener('click', () => {
+      tempFormat = 'ALL';
+      tempSort = 'POPULARITY_DESC';
+      
+      document.querySelectorAll('#formatChipGroup .filter-chip').forEach(c => {
+        c.classList.toggle('selected', c.dataset.value === tempFormat);
+      });
+      document.querySelectorAll('#sortChipGroup .filter-chip').forEach(c => {
+        c.classList.toggle('selected', c.dataset.value === tempSort);
+      });
+    });
+
+    document.getElementById('btnApplyFilter').addEventListener('click', () => {
+      selectedFormat = tempFormat;
+      selectedSort = tempSort;
+      closeBottomSheet();
+      renderFilteredManga();
+    });
+
+    function parseGenreFromURL() {
+      const hash = window.location.hash;
+      if (hash && hash.includes('genre=')) {
+        const match = hash.match(/genre=([^&]+)/i);
+        if (match && match[1]) {
+          return decodeURIComponent(match[1]);
+        }
+      }
+      
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.has('genre')) {
+        return searchParams.get('genre');
+      }
+
+      return 'Action';
+    }
+
+    function renderSkeletonGrid(count = 10) {
+      const grid = document.getElementById('genreMangaGrid');
+      grid.innerHTML = Array(count).fill(`
+        <div class="ranking-card" style="pointer-events:none;">
+          <div class="ranking-thumb-img skeleton-box"></div>
+          <div class="ranking-info" style="display:flex; flex-direction:column; gap:6px;">
+            <div class="skeleton-box" style="height:14px; width:75%;"></div>
+            <div class="skeleton-box" style="height:12px; width:35%;"></div>
+          </div>
+          <div class="ranking-item-stat skeleton-box" style="height:12px; width:25px;"></div>
+        </div>
+      `).join('');
+    }
+
+    function updateHeroHeader(bannerUrl) {
+      const heroBg = document.getElementById('heroBg');
+      heroBg.classList.remove('loaded');
+      if (!bannerUrl) return;
+
+      const imgLoader = new Image();
+      imgLoader.src = bannerUrl;
+      imgLoader.onload = () => {
+        heroBg.style.backgroundImage = `url('${bannerUrl}')`;
+        heroBg.classList.add('loaded');
+      };
+    }
+
+    async function fetchAnilistDetailsBatch(anilistIds) {
+      if (!anilistIds || anilistIds.length === 0) return {};
+      const query = `
+        query ($ids: [Int]) {
+          Page(page: 1, perPage: 50) {
+            media(id_in: $ids, type: MANGA) {
+              id
+              format
+              status
+              title { english romaji userPreferred }
+              coverImage { extraLarge large medium }
+              bannerImage
+              countryOfOrigin
+              genres
+              popularity
+              averageScore
+              favourites
+              updatedAt
+            }
+          }
+        }
+      `;
+      try {
+        const response = await fetch(ANILIST_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ query, variables: { ids: anilistIds } })
+        });
+        const json = await response.json();
+        const resultMap = {};
+        if (json.data?.Page?.media) {
+          json.data.Page.media.forEach(item => resultMap[item.id] = item);
+        }
+        return resultMap;
+      } catch (e) {
+        return {};
+      }
+    }
+
+    async function loadSupabaseGenreData() {
+      isDataLoaded = false;
+      renderSkeletonGrid(10);
+
+      if (window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+
+      try {
+        const { data: supabaseItems, error } = await supabaseClient
+          .from('manga_data')
+          .select('id, content');
+
+        if (error || !supabaseItems) {
+          rawMangaList = [];
+          return;
+        }
+
+        const anilistIds = supabaseItems
+          .map(item => item.content?.anilist_id)
+          .filter(id => id != null && !isNaN(id));
+
+        const aniMap = await fetchAnilistDetailsBatch(anilistIds);
+
+        rawMangaList = supabaseItems.map(sbItem => {
+          const content = sbItem.content || {};
+          const aniId = content.anilist_id;
+          const aniData = aniMap[aniId] || {};
+          const chapters = content.chapters || {};
+          const chapterCount = Array.isArray(chapters) ? chapters.length : Object.keys(chapters).length;
+
+          return {
+            id: aniId || sbItem.id,
+            sbId: sbItem.id,
+            title: content.title || aniData.title?.english || aniData.title?.romaji || 'Tanpa Judul',
+            titleRomaji: aniData.title?.romaji || content.title || '',
+            thumbImg: aniData.coverImage?.medium || aniData.coverImage?.large || content.cover || '',
+            bannerImg: aniData.bannerImage || aniData.coverImage?.extraLarge || content.cover || '',
+            countryOfOrigin: aniData.countryOfOrigin || content.type || 'JP',
+            format: aniData.format || content.format || '',
+            status: aniData.status || 'RELEASING',
+            genres: aniData.genres || content.genres || [],
+            popularity: aniData.popularity || 0,
+            averageScore: aniData.averageScore || 0,
+            favourites: aniData.favourites || 0,
+            updatedAt: aniData.updatedAt || 0,
+            chapterCount: chapterCount
+          };
+        });
+
+      } catch (err) {
+      } finally {
+        isDataLoaded = true;
+        renderFilteredManga();
+      }
+    }
+
+    function renderFilteredManga() {
+      const container = document.getElementById('genreMangaGrid');
+      if (!isDataLoaded) return;
+
+      const targetGenreClean = currentGenre.trim().toLowerCase();
+
+      let filtered = rawMangaList.filter(manga => {
+        const hasGenre = manga.genres.some(g => g.toLowerCase() === targetGenreClean);
+        if (!hasGenre) return false;
+
+        if (selectedFormat !== 'ALL') {
+          if (selectedFormat === 'MANGA' && (manga.countryOfOrigin !== 'JP' || manga.format === 'ONE_SHOT')) return false;
+          if (selectedFormat === 'MANHWA' && (manga.countryOfOrigin !== 'KR' || manga.format === 'ONE_SHOT')) return false;
+          if (selectedFormat === 'MANHUA' && (manga.countryOfOrigin !== 'CN' || manga.format === 'ONE_SHOT')) return false;
+          if (selectedFormat === 'ONE_SHOT' && manga.format !== 'ONE_SHOT') return false;
+        }
+
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (selectedSort === 'POPULARITY_DESC') return b.popularity - a.popularity;
+        if (selectedSort === 'SCORE_DESC') return b.averageScore - a.averageScore;
+        if (selectedSort === 'FAVOURITES_DESC') return b.favourites - a.favourites;
+        if (selectedSort === 'TITLE_ROMAJI') return a.titleRomaji.localeCompare(b.titleRomaji);
+        if (selectedSort === 'UPDATED_AT_DESC') return b.updatedAt - a.updatedAt;
+        return 0;
+      });
+
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state">Tidak ada manga genre ${currentGenre} database belum tersedia.</div>`;
+        updateHeroHeader('');
+        return;
+      }
+
+      updateHeroHeader(filtered[0].bannerImg);
+
+      filtered.forEach(manga => {
+        let typeText = 'MANGA';
+        if (manga.format === 'ONE_SHOT') typeText = 'ONE SHOT';
+        else if (manga.countryOfOrigin === 'KR') typeText = 'MANHWA';
+        else if (manga.countryOfOrigin === 'CN') typeText = 'MANHUA';
+
+        const statDisplay = selectedSort === 'SCORE_DESC' ? (manga.averageScore ? `${manga.averageScore}%` : '0%') :
+                            selectedSort === 'FAVOURITES_DESC' ? formatNumber(manga.favourites) :
+                            formatNumber(manga.popularity);
+
+        const card = document.createElement('div');
+        card.className = 'ranking-card fade-in';
+        card.innerHTML = `
+          <img class="ranking-thumb-img" src="${manga.thumbImg}" alt="${manga.title}" loading="lazy">
+          <div class="ranking-info">
+            <div class="ranking-item-title">${manga.title}</div>
+            <span class="ranking-item-sub">${typeText}</span>
+          </div>
+          <div class="ranking-item-stat">${statDisplay}</div>
+        `;
+
+        applyRippleToElement(card);
+        card.onclick = () => setTimeout(() => openMangaDetail(manga.id), 150);
+        container.appendChild(card);
+      });
+    }
+
+    function init() {
+      initRipples();
+      currentGenre = parseGenreFromURL();
+      document.getElementById('genreTitleDisplay').innerText = currentGenre;
+      loadSupabaseGenreData();
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+    window.addEventListener('hashchange', () => {
+      const newGenre = parseGenreFromURL();
+      if (newGenre !== currentGenre) {
+        currentGenre = newGenre;
+        document.getElementById('genreTitleDisplay').innerText = currentGenre;
+        document.getElementById('heroBg').classList.remove('loaded');
+        renderFilteredManga();
+      }
+    });
+  </script>
+</body>
+</html>
