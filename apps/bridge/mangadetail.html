@@ -809,13 +809,13 @@
           window.Android.openBridge(targetUrl);
         } else if (typeof window.Android.openPage === 'function') {
           window.Android.openPage(targetUrl);
-        } else if (typeof window.Android.openLogin === 'function' && url.includes('login.html')) {
+        } else if (typeof window.Android.openLogin === 'function' && url.includes('https://mineread.vercel.app/apps/bridge/login.html')) {
           window.Android.openLogin();
         } else {
           window.location.href = targetUrl;
         }
       } else if (window.android) {
-        if (typeof window.android.openLogin === 'function' && url.includes('login.html')) {
+        if (typeof window.android.openLogin === 'function' && url.includes('https://mineread.vercel.app/apps/bridge/login.html')) {
           window.android.openLogin();
         } else {
           window.location.href = targetUrl;
@@ -832,14 +832,14 @@
 
     function openCharPage(charId) {
       if (charId) {
-        navigateTo(`settings.html#char=${charId}`);
+        navigateTo(`https://mineread.vercel.app/apps/bridge/moreset.html#char=${charId}`);
       }
     }
 
     function openReadPage() {
       const mangaId = getMangaIdFromUrl();
       if (mangaId) {
-        navigateTo(`read.html#${mangaId}`);
+        navigateTo(`https://mineread.vercel.app/apps/bridge/read.html#${mangaId}`);
       }
     }
 
@@ -850,7 +850,7 @@
     function checkAuthAndProceed() {
       const user = getLoggedInUser();
       if (!user) {
-        navigateTo('login.html');
+        navigateTo('https://mineread.vercel.app/apps/bridge/login.html');
         return null;
       }
       return user;
@@ -869,12 +869,12 @@
       if (!user) return;
       const mangaId = getMangaIdFromUrl();
       if (mangaId) {
-        navigateTo(`settings.html#opsisave=${mangaId}`);
+        navigateTo(`https://mineread.vercel.app/apps/bridge/moreset.html#opsisave=${mangaId}`);
       }
     }
 
     function openLangSettings() {
-      navigateTo('settings.html#bahasa');
+      navigateTo('https://mineread.vercel.app/apps/bridge/moreset.html#bahasa');
     }
 
     function updateFavUI(activeStatus) {
