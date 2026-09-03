@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore</title>
+  
+  <style>
+    @font-face {
+      font-family: 'Plus Jakarta Sans';
+      src: url('font/jakarta-sans.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-color: #0d0d0d;
+      --surface-color: #1a1a1a;
+      --text-color: #ffffff;
+      --font-main: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    button, .action-btn {
+      border: none;
+      outline: none;
+      background: transparent;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .app-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 40px 20px 16px;
+      background-color: var(--bg-color);
+      z-index: 100;
+    }
+
+    .app-title {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.8px;
+      color: var(--text-color);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      margin-right: -4px;
+    }
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      border-radius: 50%;
+    }
+
+    .action-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--text-color);
+      position: relative;
+      z-index: 2;
+    }
+
+    .viewport-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .scroll-view {
+      flex: 1;
+      overflow-y: auto;
+      padding-top: 110px;
+      padding-bottom: 40px;
+      position: relative;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      touch-action: pan-y;
+    }
+
+    .scroll-view::-webkit-scrollbar {
+      display: none;
+    }
+
+    .section-container {
+      padding: 0 16px;
+    }
+
+    .genre-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .genre-card {
+      position: relative;
+      width: 100%;
+      border-radius: 18px;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+      height: 100px;
+    }
+
+    .genre-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      width: 100%;
+      gap: 8px;
+    }
+
+    .genre-name {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.4px;
+      flex: 1;
+    }
+
+    .genre-tagline {
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0.82;
+      line-height: 1.35;
+      margin-top: 14px;
+    }
+
+    .ripple-wave {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.08) 45%, rgba(0, 0, 0, 0) 70%);
+      transform: scale(0);
+      animation: rippleAnim 0.75s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+      pointer-events: none;
+      z-index: 10;
+      will-change: transform, opacity;
+    }
+
+    .action-btn .ripple-wave {
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.1) 45%, rgba(255, 255, 255, 0) 70%);
+    }
+
+    @keyframes rippleAnim {
+      0% {
+        transform: scale(0);
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header" id="appHeader">
+    <div class="app-title">Explore</div>
+    <div class="header-actions">
+      <button class="action-btn" onclick="navigateTo('https://mineread.vercel.app/apps/bridge/search.html')" title="Cari komik">
+        <svg viewBox="0 0 24 24">
+          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="viewport-wrapper">
+    <div class="scroll-view" id="scrollView">
+      <div class="section-container">
+        <div class="genre-grid" id="genreGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isNavigating = false;
+
+    const GENRES_CONFIG = [
+      { name: 'Action', tagline: 'Pertarungan seru & aksi tanpa henti', bgColor: '#FF7043', textColor: '#000000' },
+      { name: 'Romance', tagline: 'Kisah manis & emosional', bgColor: '#F48FB1', textColor: '#000000' },
+      { name: 'Fantasy', tagline: 'Dunia sihir & petualangan ajaib', bgColor: '#CE93D8', textColor: '#000000' },
+      { name: 'Adventure', tagline: 'Jelajahi dunia tanpa batas', bgColor: '#C5E1A5', textColor: '#000000' },
+      { name: 'Comedy', tagline: 'Gelak tawa & humor segar', bgColor: '#FFF59D', textColor: '#000000' },
+      { name: 'Sci-Fi', tagline: 'Masa depan & teknologi canggih', bgColor: '#90CAF9', textColor: '#000000' },
+      { name: 'Slice of Life', tagline: 'Kisah kehidupan sehari-hari', bgColor: '#FFCC80', textColor: '#000000' },
+      { name: 'Drama', tagline: 'Konflik mendalam & emosi', bgColor: '#B39DDB', textColor: '#000000' },
+      { name: 'Mystery', tagline: 'Teka-teki & rahasia misterius', bgColor: '#B0BEC5', textColor: '#000000' },
+      { name: 'Horror', tagline: 'Sensasi mencekam & ketakutan', bgColor: '#A5D6A7', textColor: '#000000' },
+      { name: 'Psychological', tagline: 'Permainan pikiran & mental', bgColor: '#E6EE9C', textColor: '#000000' },
+      { name: 'Supernatural', tagline: 'Kekuatan gaib & tak kasat mata', bgColor: '#80DEEA', textColor: '#000000' },
+      { name: 'Sports', tagline: 'Semangat kompetisi & olahraga', bgColor: '#FFE082', textColor: '#000000' },
+      { name: 'Mahou Shoujo', tagline: 'Gadis penyihir berdaya magis', bgColor: '#F8BBD0', textColor: '#000000' },
+      { name: 'Thriller', tagline: 'Ketegangan pacu adrenalin', bgColor: '#FFAB91', textColor: '#000000' },
+      { name: 'Ecchi', tagline: 'Konten dewasa ringan', bgColor: '#FF80AB', textColor: '#000000' },
+      { name: 'Hentai', tagline: 'Koleksi khusus konten dewasa', bgColor: '#EA80FC', textColor: '#000000' }
+    ];
+
+    function navigateTo(url) {
+      if (isNavigating) return;
+      isNavigating = true;
+
+      let targetUrl = url;
+      if (!/^https?:\/\//i.test(url) && !/^file:\/\//i.test(url)) {
+        if (window.location.protocol === 'file:') {
+          const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+          targetUrl = basePath + url;
+        } else {
+          targetUrl = 'file:///android_asset/' + url;
+        }
+      }
+
+      if (window.Android && typeof window.Android.openBridge === 'function') {
+        window.Android.openBridge(targetUrl);
+      } else {
+        window.location.href = targetUrl;
+      }
+
+      setTimeout(() => {
+        isNavigating = false;
+      }, 800);
+    }
+
+    function attachRippleEffect() {
+      const clickableItems = document.querySelectorAll('.genre-card, .action-btn');
+      
+      clickableItems.forEach(item => {
+        if (item.dataset.hasRipple) return;
+        item.dataset.hasRipple = 'true';
+
+        item.addEventListener('pointerdown', (e) => {
+          const oldRipple = item.querySelector('.ripple-wave');
+          if (oldRipple) oldRipple.remove();
+
+          const rect = item.getBoundingClientRect();
+          const diameter = Math.max(rect.width, rect.height);
+          const radius = diameter / 2;
+
+          let clientX = e.clientX;
+          let clientY = e.clientY;
+
+          if (e.type === 'touchstart' && e.touches && e.touches[0]) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+          }
+
+          if (clientX === undefined) clientX = rect.left + rect.width / 2;
+          if (clientY === undefined) clientY = rect.top + rect.height / 2;
+
+          const circle = document.createElement('span');
+          circle.style.width = circle.style.height = `${diameter}px`;
+          circle.style.left = `${clientX - rect.left - radius}px`;
+          circle.style.top = `${clientY - rect.top - radius}px`;
+          circle.classList.add('ripple-wave');
+
+          item.appendChild(circle);
+
+          setTimeout(() => {
+            if (circle && circle.parentNode) circle.remove();
+          }, 850);
+        });
+      });
+    }
+
+    function renderGenreCards() {
+      const grid = document.getElementById('genreGrid');
+      grid.innerHTML = '';
+
+      GENRES_CONFIG.forEach((genreObj) => {
+        const card = document.createElement('div');
+        card.className = 'genre-card';
+        card.style.backgroundColor = genreObj.bgColor;
+        card.style.color = genreObj.textColor;
+
+        card.innerHTML = `
+          <div class="genre-card-header">
+            <div class="genre-name" style="color: ${genreObj.textColor}">${genreObj.name}</div>
+          </div>
+          <div class="genre-tagline" style="color: ${genreObj.textColor}">${genreObj.tagline}</div>
+        `;
+
+        card.onclick = (e) => {
+          e.preventDefault();
+          navigateTo(`https://mineread.vercel.app/apps/bridge/genre.httml#genre=${encodeURIComponent(genreObj.name)}`);
+        };
+
+        grid.appendChild(card);
+      });
+      
+      attachRippleEffect();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderGenreCards();
+    });
+  </script>
+</body>
+</html>
