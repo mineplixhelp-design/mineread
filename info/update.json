@@ -1,0 +1,66 @@
+[
+  {
+    "version": "v2.1.0",
+    "date": "12 Agustus 2026",
+    "isLatest": true,
+    "title": "Tampilan Baru Genre & Navigasi Lebih Cepat",
+    "changes": [
+      { "type": "feature", "label": "Fitur", "text": "Desain Hero Banner baru dengan gradien melengkung pada halaman Genre." },
+      { "type": "improve", "label": "Peningkatan", "text": "Optimasi Pull-to-Refresh Mineplay dengan animasi elastis yang lebih lancar." },
+      { "type": "fix", "label": "Perbaikan", "text": "Perbaikan masalah gambar poster yang terkadang tidak termuat pada koneksi lambat." }
+    ]
+  },
+  {
+    "version": "v2.0.4",
+    "date": "28 Juli 2026",
+    "isLatest": false,
+    "title": "Peningkatan Fitur Pencarian & Filter",
+    "changes": [
+      { "type": "feature", "label": "Fitur", "text": "Filter berdasarkan skor tertinggi, abjad, dan tanggal rilis." },
+      { "type": "improve", "label": "Peningkatan", "text": "Sistem cache gambar poster untuk menghemat kuota pengguna." }
+    ]
+  },
+  {
+    "version": "v2.0.0",
+    "date": "10 Juni 2026",
+    "isLatest": false,
+    "title": "Mineplay UI Redesign & Performa Baru",
+    "changes": [
+      { "type": "feature", "label": "Fitur", "text": "Peluncuran antarmuka serba hitam (Pitch Black) berbasis Material Design 3." },
+      { "type": "improve", "label": "Peningkatan", "text": "Penggunaan API AniList GraphQL untuk load data anime lebih instan." },
+      { "type": "fix", "label": "Perbaikan", "text": "Menghilangkan flickering saat melakukan transisi antar halaman detail." }
+    ]
+  },
+  {
+    "version": "v2.1.0",
+    "date": "12 Agustus 2026",
+    "isLatest": true,
+    "title": "Tampilan Baru Genre & Navigasi Lebih Cepat",
+    "changes": [
+      { "type": "feature", "label": "Fitur", "text": "Desain Hero Banner baru dengan gradien melengkung pada halaman Genre." },
+      { "type": "improve", "label": "Peningkatan", "text": "Optimasi Pull-to-Refresh Mineplay dengan animasi elastis yang lebih lancar." },
+      { "type": "fix", "label": "Perbaikan", "text": "Perbaikan masalah gambar poster yang terkadang tidak termuat pada koneksi lambat." }
+    ]
+  },
+  {
+    "version": "v2.0.4",
+    "date": "28 Juli 2026",
+    "isLatest": false,
+    "title": "Peningkatan Fitur Pencarian & Filter",
+    "changes": [
+      { "type": "feature", "label": "Fitur", "text": "Filter berdasarkan skor tertinggi, abjad, dan tanggal rilis." },
+      { "type": "improve", "label": "Peningkatan", "text": "Sistem cache gambar poster untuk menghemat kuota pengguna." }
+    ]
+  },
+  {
+    "version": "v2.0.0",
+    "date": "10 Juni 2026",
+    "isLatest": false,
+    "title": "Mineplay UI Redesign & Performa Baru",
+    "changes": [
+      { "type": "feature", "label": "Fitur", "text": "Peluncuran antarmuka serba hitam (Pitch Black) berbasis Material Design 3." },
+      { "type": "improve", "label": "Peningkatan", "text": "Penggunaan API AniList GraphQL untuk load data anime lebih instan." },
+      { "type": "fix", "label": "Perbaikan", "text": "Menghilangkan flickering saat melakukan transisi antar halaman detail." }
+    ]
+  }
+]
