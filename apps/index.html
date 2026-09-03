@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    @font-face {
+      font-family: 'Plus Jakarta Sans';
+      src: url('font/jakarta-sans.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-color: #000000;
+      --surface-color: #121212;
+      --text-color: #ffffff;
+      --text-muted-color: #8E8E93;
+      --font-main: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    button, .action-btn {
+      border: none;
+      outline: none;
+      background: transparent;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .app-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 40px 20px 16px;
+      background-color: transparent;
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+      z-index: 100;
+      transition: background-color 0.3s ease;
+    }
+
+    .app-header.header-scrolled {
+      background-color: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .app-title {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.8px;
+      color: var(--text-color);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      margin-right: -4px;
+    }
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      border-radius: 50%;
+    }
+
+    .action-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--text-color);
+    }
+
+    .viewport-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .scroll-view {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 40px;
+      position: relative;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      touch-action: pan-y;
+    }
+
+    .scroll-view::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hero-banner-section {
+      width: 100%;
+      position: relative;
+      background-color: var(--bg-color);
+      margin-bottom: 20px;
+    }
+
+    .hero-slider-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 12 / 9;
+      max-height: 320px;
+      overflow: hidden;
+      background-color: var(--bg-color);
+      touch-action: pan-y;
+    }
+
+    .hero-carousel {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .hero-slide {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease, filter 0.4s ease;
+      will-change: opacity, filter;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .hero-slide.slide-active {
+      opacity: 1;
+      visibility: visible;
+      z-index: 2;
+    }
+
+    .hero-bg-blur {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: blur(16px) brightness(0.4);
+      transform: scale(1.2);
+    }
+
+    .hero-cover-image {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center center;
+      z-index: 1;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      padding: 0 16px 18px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.2) 60%, transparent 100%);
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      text-align: center;
+      gap: 4px;
+      z-index: 2;
+    }
+
+    .hero-slide-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.2;
+      text-transform: uppercase;
+      letter-spacing: -0.3px;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+    }
+
+    .hero-slide-info {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+    }
+
+    .hero-indicators {
+      position: absolute;
+      bottom: 6px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .hero-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.35);
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .hero-dot.dot-active {
+      width: 24px;
+      border-radius: 4px;
+      background-color: #ffffff;
+    }
+
+    .section-container {
+      padding: 0 16px;
+    }
+
+    .category-tabs {
+      display: flex;
+      width: 100%;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .tab-btn {
+      flex: 1;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-muted-color);
+      padding: 10px 0;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: color 0.3s ease;
+    }
+
+    .tab-btn.tab-active {
+      color: #ffffff;
+    }
+
+    .tab-indicator {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 33.333%;
+      height: 2px;
+      background-color: #ffffff;
+      transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .tab-swipe-viewport {
+      width: 100%;
+      overflow: hidden;
+      touch-action: pan-y;
+    }
+
+    .tab-swipe-wrapper {
+      display: flex;
+      width: 300%;
+      transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      will-change: transform;
+    }
+
+    .tab-swipe-page {
+      width: 33.333333%;
+      flex-shrink: 0;
+    }
+
+    .ranking-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ranking-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 10px;
+      background-color: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ranking-thumb-img {
+      width: 52px;
+      height: 70px;
+      object-fit: cover;
+      background-color: var(--surface-color);
+      flex-shrink: 0;
+      border-radius: 6px;
+    }
+
+    .ranking-index {
+      font-size: 24px;
+      color: var(--text-muted-color);
+      font-weight: 800;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .ranking-info {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .ranking-item-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .ranking-item-sub {
+      font-size: 12px;
+      color: var(--text-muted-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ranking-item-stat {
+      font-size: 12px;
+      color: var(--text-muted-color);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .ripple-wave {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(0);
+      animation: rippleAnim 0.5s ease-out forwards;
+      pointer-events: none;
+      z-index: 10;
+      will-change: transform, opacity;
+    }
+
+    @keyframes rippleAnim {
+      0% {
+        transform: scale(0);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(2.5);
+        opacity: 0;
+      }
+    }
+
+    .image-fade-in {
+      opacity: 0;
+      transition: opacity 0.35s ease-in-out;
+      border: none !important;
+      font-size: 0 !important;
+    }
+
+    .image-fade-in.image-loaded {
+      opacity: 1;
+    }
+
+    .skeleton-box {
+      background-color: var(--surface-color);
+      opacity: 0.6;
+      border-radius: 12px;
+      animation: skeletonPulse 1.2s infinite ease-in-out;
+    }
+
+    @keyframes skeletonPulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.7; }
+    }
+
+    .hero-skeleton-box {
+      width: 100%;
+      aspect-ratio: 12 / 9;
+      max-height: 320px;
+      border-radius: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header" id="appHeader">
+    <div class="app-title">Home</div>
+    <div class="header-actions">
+      <button class="action-btn" onclick="navigateTo('search.html')" title="Search">
+        <svg viewBox="0 0 24 24">
+          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="viewport-wrapper">
+    <div class="scroll-view" id="scrollView">
+      
+      <section class="hero-banner-section" id="heroBannerSection">
+        <div class="hero-slider-container" id="heroSliderContainer">
+          <div class="hero-skeleton-box skeleton-box" id="heroSkeleton"></div>
+          <div class="hero-carousel" id="heroCarousel" style="display: none;"></div>
+          <div class="hero-indicators" id="heroIndicators" style="display: none;"></div>
+        </div>
+      </section>
+
+      <div class="section-container">
+
+        <div class="category-tabs">
+          <div class="tab-btn tab-active" onclick="switchTabByIndex(0)">Hottest</div>
+          <div class="tab-btn" onclick="switchTabByIndex(1)">Trending</div>
+          <div class="tab-btn" onclick="switchTabByIndex(2)">Completed</div>
+          <div class="tab-indicator" id="tabIndicator"></div>
+        </div>
+
+        <div class="tab-swipe-viewport" id="tabSwipeViewport">
+          <div class="tab-swipe-wrapper" id="tabSwipeWrapper">
+            <div class="tab-swipe-page">
+              <div class="ranking-container" id="rankingListHottest">
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+              </div>
+            </div>
+            <div class="tab-swipe-page">
+              <div class="ranking-container" id="rankingListTrending">
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+              </div>
+            </div>
+            <div class="tab-swipe-page">
+              <div class="ranking-container" id="rankingListCompleted">
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+                <div style="height:70px;" class="skeleton-box"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://svyqklceysmpvkktavou.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_-9Q7DxILIR54gV7jCBAy7g_VLAokyF3';
+    const ANILIST_ENDPOINT = 'https://graphql.anilist.co';
+
+    let supabaseClient = null;
+
+    function navigateTo(url) {
+      let targetUrl = url;
+      if (!/^https?:\/\//i.test(url) && !/^file:\/\//i.test(url)) {
+        if (window.location.protocol === 'file:') {
+          const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+          targetUrl = basePath + url;
+        } else {
+          targetUrl = 'file:///android_asset/' + url;
+        }
+      }
+      if (window.Android && typeof window.Android.openBridge === 'function') {
+        window.Android.openBridge(targetUrl);
+      } else {
+        window.location.href = targetUrl;
+      }
+    }
+
+    function handleImageLoad(imgElement) {
+      if (!imgElement) return;
+      if (imgElement.complete) {
+        imgElement.classList.add('image-loaded');
+      } else {
+        imgElement.onload = () => imgElement.classList.add('image-loaded');
+      }
+    }
+
+    function formatNumber(num) {
+      if (!num) return '0';
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num.toString();
+    }
+
+    function attachRippleEffect() {
+      const clickableItems = document.querySelectorAll('.hero-slide, .ranking-card, .action-btn, .tab-btn');
+      
+      clickableItems.forEach(item => {
+        if (item.dataset.hasRipple) return;
+        item.dataset.hasRipple = 'true';
+
+        item.addEventListener('pointerdown', (e) => {
+          const oldRipple = item.querySelector('.ripple-wave');
+          if (oldRipple) oldRipple.remove();
+
+          const rect = item.getBoundingClientRect();
+          const diameter = Math.max(rect.width, rect.height);
+          const radius = diameter / 2;
+
+          let clientX = e.clientX;
+          let clientY = e.clientY;
+
+          if (e.type === 'touchstart' && e.touches && e.touches[0]) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+          }
+
+          if (clientX === undefined) clientX = rect.left + rect.width / 2;
+          if (clientY === undefined) clientY = rect.top + rect.height / 2;
+
+          const circle = document.createElement('span');
+          circle.style.width = circle.style.height = `${diameter}px`;
+          circle.style.left = `${clientX - rect.left - radius}px`;
+          circle.style.top = `${clientY - rect.top - radius}px`;
+          circle.classList.add('ripple-wave');
+
+          item.appendChild(circle);
+
+          setTimeout(() => {
+            if (circle && circle.parentNode) circle.remove();
+          }, 500);
+        });
+      });
+    }
+
+    let rankingDataset = {};
+    let activeHeroSlideIndex = 0;
+    let totalHeroSlides = 0;
+    let currentTabIndex = 0;
+
+    async function fetchAnilistDetailsBatch(anilistIds) {
+      if (!anilistIds || anilistIds.length === 0) return {};
+      
+      const query = `
+        query ($ids: [Int]) {
+          Page(page: 1, perPage: 50) {
+            media(id_in: $ids, type: MANGA) {
+              id
+              title { english romaji userPreferred }
+              bannerImage
+              coverImage { extraLarge large medium }
+              countryOfOrigin
+              genres
+              popularity
+              averageScore
+              status
+            }
+          }
+        }
+      `;
+
+      try {
+        const response = await fetch(ANILIST_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ query, variables: { ids: anilistIds } })
+        });
+        const json = await response.json();
+        
+        const resultMap = {};
+        if (json.data && json.data.Page && json.data.Page.media) {
+          json.data.Page.media.forEach(item => {
+            resultMap[item.id] = item;
+          });
+        }
+        return resultMap;
+      } catch (e) {
+        console.error('AniList API Error:', e);
+        return {};
+      }
+    }
+
+    async function loadAppContent() {
+      if (!supabaseClient) {
+        if (window.supabase) {
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } else {
+          return;
+        }
+      }
+
+      try {
+        const { data: supabaseItems, error } = await supabaseClient
+          .from('manga_data')
+          .select('id, content')
+          .order('id', { ascending: false });
+
+        if (error || !supabaseItems || supabaseItems.length === 0) {
+          document.getElementById('heroSkeleton').style.display = 'none';
+          document.getElementById('rankingListHottest').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tidak ada data.</div>';
+          document.getElementById('rankingListTrending').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tidak ada data.</div>';
+          document.getElementById('rankingListCompleted').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tidak ada data.</div>';
+          return;
+        }
+
+        const anilistIds = supabaseItems
+          .map(item => item.content?.anilist_id)
+          .filter(id => id != null && !isNaN(id));
+
+        const aniMap = await fetchAnilistDetailsBatch(anilistIds);
+
+        const mergedList = supabaseItems.map(sbItem => {
+          const content = sbItem.content || {};
+          const aniId = content.anilist_id;
+          const aniData = aniMap[aniId] || {};
+
+          const chapters = content.chapters || {};
+          const chapterCount = Array.isArray(chapters) ? chapters.length : Object.keys(chapters).length;
+
+          return {
+            id: aniId || sbItem.id,
+            sbId: sbItem.id,
+            title: aniData.title?.english || aniData.title?.romaji || aniData.title?.userPreferred || content.title || 'Tanpa Judul',
+            bannerImage: aniData.bannerImage || aniData.coverImage?.extraLarge || aniData.coverImage?.large || '',
+            coverImage: aniData.coverImage || {},
+            countryOfOrigin: aniData.countryOfOrigin || content.type || 'JP',
+            genres: aniData.genres || [],
+            popularity: aniData.popularity || chapterCount || 0,
+            averageScore: aniData.averageScore || 0,
+            status: aniData.status || 'RELEASING',
+            chapterCount: chapterCount
+          };
+        });
+
+        renderHeroBanner(mergedList.slice(0, 5));
+
+        const hottestData = [...mergedList].sort((a, b) => b.averageScore - a.averageScore).slice(0, 10);
+        const trendingData = [...mergedList].sort((a, b) => b.popularity - a.popularity).slice(0, 10);
+        const completedData = mergedList.filter(item => item.status === 'FINISHED').slice(0, 10);
+
+        rankingDataset = {
+          hottest: hottestData.length > 0 ? hottestData : mergedList.slice(0, 10),
+          trending: trendingData.length > 0 ? trendingData : mergedList.slice(0, 10),
+          completed: completedData.length > 0 ? completedData : mergedList.slice(0, 10)
+        };
+
+        renderRankingSection('hottest', 'rankingListHottest');
+        renderRankingSection('trending', 'rankingListTrending');
+        renderRankingSection('completed', 'rankingListCompleted');
+        attachRippleEffect();
+
+      } catch (err) {
+        console.error('Gagal memuat konten:', err);
+      }
+    }
+
+    function renderHeroBanner(mediaList) {
+      const carousel = document.getElementById('heroCarousel');
+      const indicatorsContainer = document.getElementById('heroIndicators');
+      const skeleton = document.getElementById('heroSkeleton');
+
+      carousel.innerHTML = '';
+      indicatorsContainer.innerHTML = '';
+      totalHeroSlides = mediaList.length;
+
+      if (totalHeroSlides === 0) {
+        skeleton.style.display = 'none';
+        return;
+      }
+
+      mediaList.forEach((item, index) => {
+        const slide = document.createElement('div');
+        slide.className = `hero-slide ${index === 0 ? 'slide-active' : ''}`;
+        
+        const imgSrc = item.bannerImage || item.coverImage?.large || '';
+        const title = item.title;
+        
+        let origin = 'Manga';
+        if (item.countryOfOrigin === 'KR') origin = 'Manhwa';
+        else if (item.countryOfOrigin === 'CN') origin = 'Manhua';
+
+        const genresText = item.genres && item.genres.length > 0 ? item.genres.slice(0, 3).join(' • ') : origin;
+
+        slide.innerHTML = `
+          <img class="hero-bg-blur" src="${imgSrc}" aria-hidden="true">
+          <img class="hero-cover-image image-fade-in" src="${imgSrc}" loading="lazy">
+          <div class="hero-overlay">
+            <div class="hero-slide-title">${title}</div>
+            <div class="hero-slide-info">${genresText}</div>
+          </div>
+        `;
+
+        handleImageLoad(slide.querySelector('.hero-cover-image'));
+        
+        slide.addEventListener('click', () => {
+          setTimeout(() => {
+            navigateTo(`pagedetail.html?id=${item.id}`);
+          }, 150);
+        });
+
+        carousel.appendChild(slide);
+
+        const dot = document.createElement('div');
+        dot.className = `hero-dot ${index === 0 ? 'dot-active' : ''}`;
+        indicatorsContainer.appendChild(dot);
+      });
+
+      skeleton.style.display = 'none';
+      carousel.style.display = 'block';
+      indicatorsContainer.style.display = 'flex';
+      initHeroTouchGesture();
+    }
+
+    function changeHeroSlide(targetIndex) {
+      if (targetIndex < 0 || targetIndex >= totalHeroSlides || targetIndex === activeHeroSlideIndex) return;
+
+      const slides = document.querySelectorAll('.hero-slide');
+      const dots = document.querySelectorAll('.hero-indicators .hero-dot');
+
+      slides.forEach((slide, idx) => {
+        if (idx === activeHeroSlideIndex) {
+          slide.style.transition = 'opacity 0.35s ease, filter 0.35s ease';
+          slide.style.opacity = '0';
+          slide.style.filter = 'brightness(0)';
+          setTimeout(() => {
+            slide.classList.remove('slide-active');
+            slide.style.opacity = '';
+            slide.style.filter = '';
+          }, 350);
+        } else if (idx === targetIndex) {
+          slide.classList.add('slide-active');
+          slide.style.transition = 'opacity 0.4s ease, filter 0.4s ease';
+          slide.style.opacity = '0';
+          slide.style.filter = 'brightness(0)';
+          
+          requestAnimationFrame(() => {
+            slide.style.opacity = '1';
+            slide.style.filter = 'brightness(1)';
+          });
+        }
+      });
+
+      dots.forEach((dot, idx) => dot.classList.toggle('dot-active', idx === targetIndex));
+      activeHeroSlideIndex = targetIndex;
+    }
+
+    function initHeroTouchGesture() {
+      const heroContainer = document.getElementById('heroSliderContainer');
+      let touchStartX = 0;
+      let touchDeltaX = 0;
+      let isDragging = false;
+
+      heroContainer.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchDeltaX = 0;
+        isDragging = true;
+      }, { passive: true });
+
+      heroContainer.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        touchDeltaX = e.touches[0].clientX - touchStartX;
+
+        const activeSlide = document.querySelector('.hero-slide.slide-active');
+        if (activeSlide) {
+          const absDelta = Math.abs(touchDeltaX);
+          const maxDrag = 180;
+          const progress = Math.min(absDelta / maxDrag, 1);
+          
+          const opacity = 1 - (progress * 0.7);
+          const brightness = 1 - (progress * 0.85);
+
+          activeSlide.style.transition = 'none';
+          activeSlide.style.opacity = opacity;
+          activeSlide.style.filter = `brightness(${brightness})`;
+        }
+      }, { passive: true });
+
+      heroContainer.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        const activeSlide = document.querySelector('.hero-slide.slide-active');
+
+        if (Math.abs(touchDeltaX) > 40) {
+          if (touchDeltaX < 0 && activeHeroSlideIndex < totalHeroSlides - 1) {
+            changeHeroSlide(activeHeroSlideIndex + 1);
+          } else if (touchDeltaX > 0 && activeHeroSlideIndex > 0) {
+            changeHeroSlide(activeHeroSlideIndex - 1);
+          } else if (activeSlide) {
+            activeSlide.style.transition = 'opacity 0.25s ease, filter 0.25s ease';
+            activeSlide.style.opacity = '1';
+            activeSlide.style.filter = 'brightness(1)';
+          }
+        } else if (activeSlide) {
+          activeSlide.style.transition = 'opacity 0.25s ease, filter 0.25s ease';
+          activeSlide.style.opacity = '1';
+          activeSlide.style.filter = 'brightness(1)';
+        }
+      });
+    }
+
+    function switchTabByIndex(index) {
+      if (index < 0 || index > 2) return;
+      currentTabIndex = index;
+
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach((tab, i) => {
+        tab.classList.toggle('tab-active', i === currentTabIndex);
+      });
+
+      const indicator = document.getElementById('tabIndicator');
+      indicator.style.transform = `translateX(${currentTabIndex * 100}%)`;
+
+      const wrapper = document.getElementById('tabSwipeWrapper');
+      wrapper.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+      wrapper.style.transform = `translateX(-${(currentTabIndex * 100) / 3}%)`;
+    }
+
+    function initTabSwipeGesture() {
+      const viewport = document.getElementById('tabSwipeViewport');
+      const wrapper = document.getElementById('tabSwipeWrapper');
+      
+      let startX = 0;
+      let startY = 0;
+      let currentX = 0;
+      let isSwiping = false;
+      let isHorizontal = false;
+      let isTouchDetermined = false;
+
+      viewport.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isSwiping = true;
+        isTouchDetermined = false;
+        wrapper.style.transition = 'none';
+      }, { passive: true });
+
+      viewport.addEventListener('touchmove', (e) => {
+        if (!isSwiping) return;
+
+        const touchX = e.touches[0].clientX;
+        const touchY = e.touches[0].clientY;
+        const deltaX = touchX - startX;
+        const deltaY = touchY - startY;
+
+        if (!isTouchDetermined) {
+          if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 8) {
+            isHorizontal = true;
+          } else if (Math.abs(deltaY) > Math.abs(deltaX)) {
+            isHorizontal = false;
+          }
+          isTouchDetermined = true;
+        }
+
+        if (isHorizontal) {
+          if (e.cancelable) e.preventDefault();
+
+          if ((currentTabIndex === 0 && deltaX > 0) || (currentTabIndex === 2 && deltaX < 0)) {
+            currentX = deltaX * 0.3;
+          } else {
+            currentX = deltaX;
+          }
+
+          const baseOffset = -(currentTabIndex * 100) / 3;
+          const viewportWidth = viewport.clientWidth;
+          const movePercent = (currentX / viewportWidth) * (100 / 3);
+
+          wrapper.style.transform = `translateX(${baseOffset + movePercent}%)`;
+
+          const indicator = document.getElementById('tabIndicator');
+          const indicatorOffset = currentTabIndex * 100 - (currentX / viewportWidth) * 100;
+          indicator.style.transform = `translateX(${indicatorOffset}%)`;
+        }
+      }, { passive: false });
+
+      viewport.addEventListener('touchend', (e) => {
+        if (!isSwiping) return;
+        isSwiping = false;
+
+        if (isHorizontal) {
+          const threshold = 50;
+
+          if (currentX < -threshold && currentTabIndex < 2) {
+            switchTabByIndex(currentTabIndex + 1);
+          } else if (currentX > threshold && currentTabIndex > 0) {
+            switchTabByIndex(currentTabIndex - 1);
+          } else {
+            switchTabByIndex(currentTabIndex);
+          }
+        }
+
+        currentX = 0;
+        isHorizontal = false;
+        isTouchDetermined = false;
+      });
+    }
+
+    function renderRankingSection(type, containerId) {
+      const itemsList = rankingDataset[type] || [];
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      if (itemsList.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Data tidak tersedia.</div>';
+        return;
+      }
+
+      itemsList.forEach((item, index) => {
+        const title = item.title;
+        const imgSrc = item.coverImage?.medium || item.coverImage?.large || item.bannerImage || '';
+        
+        let originType = 'Manga';
+        if (item.countryOfOrigin === 'KR' || String(item.countryOfOrigin).toLowerCase().includes('manhwa')) originType = 'Manhwa';
+        else if (item.countryOfOrigin === 'CN' || String(item.countryOfOrigin).toLowerCase().includes('manhua')) originType = 'Manhua';
+
+        const statText = item.chapterCount ? `${item.chapterCount} Ch` : formatNumber(item.popularity);
+
+        const card = document.createElement('div');
+        card.className = 'ranking-card';
+        card.innerHTML = `
+          <img class="ranking-thumb-img image-fade-in" src="${imgSrc}" loading="lazy">
+          <div class="ranking-index">${index + 1}</div>
+          <div class="ranking-info">
+            <div class="ranking-item-title">${title}</div>
+            <div class="ranking-item-sub">${originType}</div>
+          </div>
+          <div class="ranking-item-stat">${statText}</div>
+        `;
+
+        handleImageLoad(card.querySelector('img'));
+        card.onclick = () => setTimeout(() => navigateTo(`pagedetail.html?id=${item.id}`), 150);
+        container.appendChild(card);
+      });
+      
+      attachRippleEffect();
+    }
+
+    const appHeader = document.getElementById('appHeader');
+    const scrollView = document.getElementById('scrollView');
+
+    scrollView.addEventListener('scroll', () => {
+      if (scrollView.scrollTop > 20) {
+        appHeader.classList.add('header-scrolled');
+      } else {
+        appHeader.classList.remove('header-scrolled');
+      }
+    }, { passive: true });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+      attachRippleEffect();
+      initTabSwipeGesture();
+      loadAppContent();
+    });
+  </script>
+</body>
+</html>
