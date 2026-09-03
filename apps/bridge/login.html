@@ -450,6 +450,36 @@
       cursor: not-allowed;
     }
 
+    .google-btn {
+      width: 100%;
+      height: 48px;
+      background-color: var(--md-sys-color-surface-variant);
+      color: var(--md-sys-color-on-surface);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      outline: none;
+      border-radius: var(--md-shape-full);
+      cursor: pointer;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: var(--app-active-transition), background-color 0.2s ease;
+    }
+
+    .google-btn:active {
+      transform: var(--app-active-scale);
+      background-color: var(--md-sys-color-surface-container-high);
+    }
+
+    .google-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
     .field-tooltip {
       position: absolute;
       bottom: calc(100% + 8px);
@@ -581,10 +611,10 @@
 
         <div class="form-wrapper">
           <form id="loginForm" class="auth-form fade-in" onsubmit="handleLogin(event)" novalidate>
-            <div class="form-group" id="groupLoginUsername">
-              <label class="form-label">Username</label>
-              <input type="text" id="loginUsername" class="form-input" placeholder="Masukkan username" autocomplete="off" oninput="hideTooltip(this)">
-              <div class="field-tooltip" id="tooltipLoginUsername">Harap isi username!</div>
+            <div class="form-group" id="groupLoginEmail">
+              <label class="form-label">Email</label>
+              <input type="email" id="loginEmail" class="form-input" placeholder="Masukkan email" autocomplete="off" oninput="hideTooltip(this)">
+              <div class="field-tooltip" id="tooltipLoginEmail">Harap isi email!</div>
             </div>
 
             <div class="form-group" id="groupLoginPassword">
@@ -603,6 +633,15 @@
             </div>
 
             <button type="submit" class="submit-btn" id="loginBtn">Masuk</button>
+            <button type="button" class="google-btn" onclick="handleGoogleLogin()">
+              <svg viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              Masuk dengan Google
+            </button>
           </form>
 
           <form id="registerForm" class="auth-form hidden" onsubmit="handleRegister(event)" novalidate>
@@ -610,12 +649,6 @@
               <label class="form-label">Email</label>
               <input type="email" id="regEmail" class="form-input" placeholder="contoh@email.com" autocomplete="off" oninput="hideTooltip(this)">
               <div class="field-tooltip" id="tooltipRegEmail">Isi alamat email!</div>
-            </div>
-
-            <div class="form-group" id="groupRegUsername">
-              <label class="form-label">Username</label>
-              <input type="text" id="regUsername" class="form-input" placeholder="Buat username" autocomplete="off" oninput="hideTooltip(this)">
-              <div class="field-tooltip" id="tooltipRegUsername">Buat username baru!</div>
             </div>
 
             <div class="form-group" id="groupRegPassword">
@@ -647,6 +680,15 @@
             </label>
 
             <button type="submit" class="submit-btn" id="regBtn">Buat Akun</button>
+            <button type="button" class="google-btn" onclick="handleGoogleLogin()">
+              <svg viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              Daftar dengan Google
+            </button>
           </form>
         </div>
       </div>
@@ -654,7 +696,7 @@
       <div id="loggedInBox" class="logged-in-box">
         <div class="user-info-card">
           <div class="user-info-item">
-            <div class="user-info-label">Username</div>
+            <div class="user-info-label">Nama Pengguna</div>
             <div class="user-info-value" id="infoUsername">-</div>
           </div>
           <div class="user-info-item">
@@ -670,21 +712,30 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword, 
+      signInWithPopup, 
+      GoogleAuthProvider, 
+      signOut, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCfCDgff5nwMYCx1EBDJEoJ8gzxKQ9Y__U",
-      authDomain: "my-mineplix.firebaseapp.com",
-      databaseURL: "https://my-mineplix-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "my-mineplix",
-      storageBucket: "my-mineplix.firebasestorage.app",
-      messagingSenderId: "141905130988",
-      appId: "1:141905130988:web:89e524e1dc577642e8bcc9",
-      measurementId: "G-B92GJ77NPF"
+      apiKey: "AIzaSyCUIU56gmsBa--tSQCS3qvXV6-cAC537rA",
+      authDomain: "mineread-2d3b4.firebaseapp.com",
+      databaseURL: "https://mineread-2d3b4-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "mineread-2d3b4",
+      storageBucket: "mineread-2d3b4.firebasestorage.app",
+      messagingSenderId: "327279446968",
+      appId: "1:327279446968:web:fef4fca38241e7c3899d4d",
+      measurementId: "G-WZEJ797GRS"
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
 
     let captchaAnswers = {
       login: 0,
@@ -762,23 +813,6 @@
       document.querySelectorAll('.field-tooltip').forEach(t => t.classList.remove('show'));
     }
 
-    window.navigateTo = function(url) {
-      let targetUrl = url;
-      if (!/^https?:\/\//i.test(url) && !/^file:\/\//i.test(url)) {
-        if (window.location.protocol === 'file:') {
-          const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
-          targetUrl = basePath + url;
-        } else {
-          targetUrl = 'file:///android_asset/' + url;
-        }
-      }
-      if (window.Android && typeof window.Android.openBridge === 'function') {
-        window.Android.openBridge(targetUrl);
-      } else {
-        window.location.href = targetUrl;
-      }
-    };
-
     window.switchTab = function(type) {
       clearAllTooltips();
       const tabLogin = document.getElementById('tabLogin');
@@ -815,51 +849,38 @@
       }
     };
 
-    async function checkSession() {
-      const savedUser = localStorage.getItem('account:username');
-      const savedEmail = localStorage.getItem('account:email');
+    onAuthStateChanged(auth, (user) => {
       const authForms = document.getElementById('authForms');
       const loggedInBox = document.getElementById('loggedInBox');
 
-      if (savedUser) {
+      if (user) {
         authForms.style.display = 'none';
         loggedInBox.style.display = 'block';
-        document.getElementById('infoUsername').innerText = savedUser;
-        document.getElementById('infoEmail').innerText = savedEmail || 'Email tidak tersedia';
-
-        if (!savedEmail) {
-          try {
-            const dbRef = ref(db);
-            const snapshot = await get(child(dbRef, `account/${savedUser}`));
-            if (snapshot.exists()) {
-              const userData = snapshot.val();
-              if (userData.email) {
-                localStorage.setItem('account:email', userData.email);
-                document.getElementById('infoEmail').innerText = userData.email;
-              }
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        }
+        document.getElementById('infoUsername').innerText = user.displayName || user.email.split('@')[0];
+        document.getElementById('infoEmail').innerText = user.email || 'Email tidak tersedia';
       } else {
         authForms.style.display = 'block';
         loggedInBox.style.display = 'none';
         generateCaptcha('login');
       }
-    }
+    });
 
     window.handleLogin = async function(e) {
       e.preventDefault();
       clearAllTooltips();
 
-      const usernameInput = document.getElementById('loginUsername').value.trim();
+      const emailInput = document.getElementById('loginEmail').value.trim();
       const passwordInput = document.getElementById('loginPassword').value;
       const captchaInput = document.getElementById('loginCaptchaInput').value.trim();
       const btn = document.getElementById('loginBtn');
 
-      if (!usernameInput) {
-        showFieldTooltip('loginUsername', 'tooltipLoginUsername', 'Kolom ini wajib diisi!');
+      if (!emailInput) {
+        showFieldTooltip('loginEmail', 'tooltipLoginEmail', 'Harap isi email!');
+        return;
+      }
+
+      if (!isValidEmail(emailInput)) {
+        showFieldTooltip('loginEmail', 'tooltipLoginEmail', 'Format email tidak valid!');
         return;
       }
 
@@ -884,30 +905,16 @@
       btn.innerText = 'Memproses...';
 
       try {
-        const dbRef = ref(db);
-        const snapshot = await get(child(dbRef, `account/${usernameInput}`));
-
-        if (snapshot.exists()) {
-          const userData = snapshot.val();
-          if (userData.password === passwordInput) {
-            localStorage.setItem('account:username', usernameInput);
-            if (userData.email) {
-              localStorage.setItem('account:email', userData.email);
-            }
-            setTimeout(() => {
-              handleGoBack();
-            }, 300);
-          } else {
-            showFieldTooltip('loginPassword', 'tooltipLoginPassword', 'Password kamu salah!');
-            generateCaptcha('login');
-          }
-        } else {
-          showFieldTooltip('loginUsername', 'tooltipLoginUsername', 'Username tidak ditemukan!');
-          generateCaptcha('login');
-        }
+        await signInWithEmailAndPassword(auth, emailInput, passwordInput);
+        setTimeout(() => handleGoBack(), 300);
       } catch (err) {
         console.error(err);
-        showFieldTooltip('loginBtn', 'tooltipLoginUsername', 'Gagal terhubung ke database.');
+        if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+          showFieldTooltip('loginPassword', 'tooltipLoginPassword', 'Email atau password salah!');
+        } else {
+          showFieldTooltip('loginBtn', 'tooltipLoginEmail', 'Gagal login. Cek koneksi.');
+        }
+        generateCaptcha('login');
       } finally {
         btn.disabled = false;
         btn.innerText = 'Masuk';
@@ -919,7 +926,6 @@
       clearAllTooltips();
 
       const emailInput = document.getElementById('regEmail').value.trim();
-      const usernameInput = document.getElementById('regUsername').value.trim().toLowerCase();
       const passwordInput = document.getElementById('regPassword').value;
       const captchaInput = document.getElementById('regCaptchaInput').value.trim();
       const privacyCheck = document.getElementById('regPrivacy').checked;
@@ -935,18 +941,13 @@
         return;
       }
 
-      if (!usernameInput) {
-        showFieldTooltip('regUsername', 'tooltipRegUsername', 'Buat username kamu!');
-        return;
-      }
-
-      if (usernameInput.includes(' ') || usernameInput.includes('/') || usernameInput.includes('.')) {
-        showFieldTooltip('regUsername', 'tooltipRegUsername', 'Tidak boleh ada spasi/karakter khusus!');
-        return;
-      }
-
       if (!passwordInput) {
         showFieldTooltip('regPassword', 'tooltipRegPassword', 'Buat password kamu!');
+        return;
+      }
+
+      if (passwordInput.length < 6) {
+        showFieldTooltip('regPassword', 'tooltipRegPassword', 'Password minimal 6 karakter!');
         return;
       }
 
@@ -971,51 +972,47 @@
       btn.innerText = 'Mendaftarkan...';
 
       try {
-        const userRef = ref(db, `account/${usernameInput}`);
-        const snapshot = await get(userRef);
-
-        if (snapshot.exists()) {
-          showFieldTooltip('regUsername', 'tooltipRegUsername', 'Username sudah dipakai!');
-          generateCaptcha('register');
-        } else {
-          await set(userRef, {
-            email: emailInput,
-            username: usernameInput,
-            password: passwordInput
-          });
-
-          localStorage.setItem('account:username', usernameInput);
-          localStorage.setItem('account:email', emailInput);
-          
-          setTimeout(() => {
-            handleGoBack();
-          }, 300);
-        }
+        await createUserWithEmailAndPassword(auth, emailInput, passwordInput);
+        setTimeout(() => handleGoBack(), 300);
       } catch (err) {
         console.error(err);
-        showFieldTooltip('regUsername', 'tooltipRegUsername', 'Gagal mendaftar. Cek koneksi.');
+        if (err.code === 'auth/email-already-in-use') {
+          showFieldTooltip('regEmail', 'tooltipRegEmail', 'Email sudah terdaftar!');
+        } else {
+          showFieldTooltip('regBtn', 'tooltipRegEmail', 'Gagal mendaftar. Cek koneksi.');
+        }
+        generateCaptcha('register');
       } finally {
         btn.disabled = false;
         btn.innerText = 'Buat Akun';
       }
     };
 
-    window.handleLogout = function() {
-      localStorage.removeItem('account:username');
-      localStorage.removeItem('account:email');
-      document.getElementById('loginUsername').value = '';
-      document.getElementById('loginPassword').value = '';
-      document.getElementById('loginCaptchaInput').value = '';
-      document.getElementById('regEmail').value = '';
-      document.getElementById('regUsername').value = '';
-      document.getElementById('regPassword').value = '';
-      document.getElementById('regCaptchaInput').value = '';
-      document.getElementById('regPrivacy').checked = false;
-      switchTab('login');
-      checkSession();
+    window.handleGoogleLogin = async function() {
+      try {
+        await signInWithPopup(auth, googleProvider);
+        setTimeout(() => handleGoBack(), 300);
+      } catch (err) {
+        console.error("Gagal login Google:", err);
+        alert("Gagal melakukan login dengan Google.");
+      }
     };
 
-    window.addEventListener('DOMContentLoaded', checkSession);
+    window.handleLogout = async function() {
+      try {
+        await signOut(auth);
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('loginCaptchaInput').value = '';
+        document.getElementById('regEmail').value = '';
+        document.getElementById('regPassword').value = '';
+        document.getElementById('regCaptchaInput').value = '';
+        document.getElementById('regPrivacy').checked = false;
+        switchTab('login');
+      } catch (err) {
+        console.error("Gagal logout:", err);
+      }
+    };
   </script>
 </body>
 </html>
