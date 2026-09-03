@@ -517,7 +517,7 @@
     }
 
     function openMangaDetail(mangaId) {
-      const targetPath = `pagedetail.html?id=${mangaId}`;
+      const targetPath = `https://mineread.vercel.app/apps/bridge/mangadetail.html?id=${mangaId}`;
       if (window.Android && typeof window.Android.openPage === 'function') {
         window.Android.openPage(targetPath);
       } else {
