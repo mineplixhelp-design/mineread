@@ -1,3 +1,5 @@
+https://mineread.vercel.app/apps/bridge/mangadetail.html?id=
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -829,7 +831,7 @@
         }
 
         card.addEventListener('click', () => {
-          window.navigateTo(`pagedetail.html?id=${item.id}`);
+          window.navigateTo(`https://mineread.vercel.app/apps/bridge/mangadetail.html?id=${item.id}`);
         });
 
         list.appendChild(card);
@@ -897,7 +899,7 @@
         }
 
         card.addEventListener('click', () => {
-          window.navigateTo(`read.html#${item.id}`);
+          window.navigateTo(`https://mineread.vercel.app/apps/bridge/read.html#${item.id}`);
         });
 
         list.appendChild(card);
@@ -1122,7 +1124,7 @@
         localStorage.removeItem('account:email');
         renderGuestData();
       } else {
-        window.navigateTo('login.html');
+        window.navigateTo('https://mineread.vercel.app/apps/bridge/login.html');
       }
     };
 
