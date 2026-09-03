@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mineplay - Detail Manga</title>
+  
+  <style>
+    @font-face {
+      font-family: 'Plus Jakarta Sans';
+      src: url('font/jakarta-sans.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root {
+      --md-sys-color-background: #000000;
+      --md-sys-color-surface: #121212;
+      --md-sys-color-surface-variant: #1e1e1e;
+      
+      --md-sys-color-m3-grey-active: #2e2e2e;
+      --md-sys-color-m3-grey-normal: #222222;
+      --md-sys-color-on-m3-grey: #ffffff;
+
+      --md-sys-color-on-background: #e3e3e3;
+      --md-sys-color-on-surface: #e3e3e3;
+      --md-sys-color-on-surface-variant: #a0a0a0;
+
+      --md-shape-full: 9999px;
+      --font-family: 'Plus Jakarta Sans', sans-serif;
+
+      --app-active-transition: background-color 0.2s ease, opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: none !important;
+      border: none !important;
+      outline: none !important;
+    }
+
+    *:focus, *:active, *:focus-visible {
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      font-family: var(--font-family);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    button, a, input, select {
+      border: none !important;
+      outline: none !important;
+      background: none;
+      font-family: inherit;
+    }
+
+    .ripple-effect {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ripple-wave {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.20);
+      transform: scale(0);
+      animation: smoothRipple 0.4s linear forwards;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes smoothRipple {
+      0% { transform: scale(0); opacity: 0.6; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    .navbar {
+      height: calc(56px + env(safe-area-inset-top, 24px));
+      padding-top: env(safe-area-inset-top, 24px);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-left: 16px;
+      padding-right: 16px;
+      background-color: var(--md-sys-color-background);
+      z-index: 100;
+      position: relative;
+    }
+
+    .back-btn, .nav-fav-btn {
+      background: none;
+      border: none !important;
+      outline: none !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      transition: var(--app-active-transition);
+      flex-shrink: 0;
+      z-index: 2;
+    }
+
+    .back-btn:active, .nav-fav-btn:active {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .back-btn svg, .nav-fav-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: var(--md-sys-color-on-surface);
+      transition: fill 0.2s ease, transform 0.2s ease;
+    }
+
+    .nav-fav-btn.active svg {
+      fill: #FFD700;
+    }
+
+    .nav-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--md-sys-color-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      text-align: center;
+      flex: 1;
+      padding: 0 12px;
+    }
+
+    .nav-title.show {
+      opacity: 1;
+    }
+
+    .content-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .ptr-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      transform: translateY(-50px);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+    }
+
+    .ptr-text {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--md-sys-color-on-surface-variant);
+      white-space: nowrap;
+      text-align: center;
+      display: inline-block;
+      transform-origin: center center;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, color 0.3s ease;
+      opacity: 0.8;
+    }
+
+    .ptr-text.expanding {
+      color: var(--md-sys-color-on-surface);
+      opacity: 1;
+      animation: expandFromCenter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, pulse-glow 1.2s infinite ease-in-out;
+    }
+
+    @keyframes expandFromCenter {
+      0% { transform: scaleX(0.3); letter-spacing: -3px; }
+      100% { transform: scaleX(1); letter-spacing: -0.5px; }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
+    .scrollable-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      scrollbar-width: none;
+      touch-action: pan-y;
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      padding-bottom: 95px;
+    }
+
+    .scrollable-content::-webkit-scrollbar {
+      display: none;
+    }
+
+    .img-skeleton {
+      background: linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%);
+      background-size: 200% 100%;
+      animation: skeletonLoading 1.2s infinite ease-in-out;
+    }
+
+    @keyframes skeletonLoading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .hero-container {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 120px;
+      background-color: var(--md-sys-color-surface-variant);
+      overflow: hidden;
+      z-index: 1;
+      flex-shrink: 0;
+    }
+
+    .banner-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      filter: brightness(0.6);
+      display: block;
+      opacity: 0;
+      transition: opacity 0.25s ease-in-out;
+    }
+
+    .banner-img.loaded {
+      opacity: 1;
+    }
+
+    .details-scroll-wrapper {
+      position: relative;
+      z-index: 2;
+      margin-top: -65px;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .poster-container {
+      width: 110px;
+      height: 158px;
+      flex-shrink: 0;
+      overflow: hidden;
+      background-color: var(--md-sys-color-surface-variant);
+      position: relative;
+      z-index: 4;
+      margin-bottom: -80px;
+      border-radius: 8px;
+    }
+
+    .poster-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.25s ease-in-out;
+    }
+
+    .poster-img.loaded {
+      opacity: 1;
+    }
+
+    .content-container {
+      width: 100%;
+      background-color: var(--md-sys-color-background);
+      padding: 100px 16px 32px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 20px;
+      min-height: 60vh;
+      position: relative;
+      z-index: 2;
+    }
+
+    .header-details {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+    }
+
+    .manga-title-main {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.3;
+      color: var(--md-sys-color-on-surface);
+      margin-bottom: 4px;
+    }
+
+    .manga-title-sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-bottom: 12px;
+      line-height: 1.3;
+      max-width: 90%;
+    }
+
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--md-shape-full);
+      background-color: var(--md-sys-color-surface-variant);
+      color: var(--md-sys-color-on-surface);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge.oneshot-badge {
+      background-color: #ff4757;
+      color: #ffffff;
+    }
+
+    .countdown-card {
+      width: 100%;
+      background-color: var(--md-sys-color-surface-variant);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .countdown-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--md-sys-color-on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .countdown-timer {
+      font-size: 15px;
+      font-weight: 800;
+      color: #3db4f2;
+    }
+
+    .genres-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .genres-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .genre-chip {
+      background-color: var(--md-sys-color-surface-variant);
+      color: var(--md-sys-color-on-surface-variant);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: var(--md-shape-full);
+      cursor: pointer;
+      transition: var(--app-active-transition);
+    }
+
+    .genre-chip:active {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .section-block {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      position: relative;
+    }
+
+    .section-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      position: relative;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .trigger-sheet-btn {
+      background-color: var(--md-sys-color-surface-variant);
+      color: var(--md-sys-color-on-surface);
+      border-radius: 12px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--app-active-transition);
+    }
+
+    .trigger-sheet-btn svg {
+      width: 10px;
+      height: 10px;
+      fill: currentColor;
+    }
+
+    .synopsis-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--md-sys-color-on-surface);
+      opacity: 0.9;
+      text-align: left;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: opacity 0.3s ease;
+      width: 100%;
+    }
+
+    .synopsis-text.expanded {
+      -webkit-line-clamp: unset;
+    }
+
+    .toggle-synopsis-btn {
+      background: none;
+      color: var(--md-sys-color-on-surface-variant);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 2px;
+      padding: 4px 10px;
+      border-radius: var(--md-shape-full);
+      align-self: center;
+      transition: var(--app-active-transition);
+    }
+
+    .characters-scroll-list {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .characters-scroll-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    .character-card {
+      flex: 0 0 130px;
+      background-color: var(--md-sys-color-surface-variant);
+      border-radius: 12px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
+      cursor: pointer;
+      transition: var(--app-active-transition);
+    }
+
+    .character-card:active {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .char-profile {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .char-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      background-color: #1a1a1a;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .char-avatar.loaded {
+      opacity: 1;
+    }
+
+    .char-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .char-name {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--md-sys-color-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .char-role {
+      font-size: 9px;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .info-grid-grouped {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 5px;
+      text-align: left;
+    }
+
+    .info-box {
+      background-color: var(--md-sys-color-surface-variant);
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-box.top-left { border-top-left-radius: 16px; }
+    .info-box.top-right { border-top-right-radius: 16px; }
+    .info-box.bottom-left { border-bottom-left-radius: 16px; }
+    .info-box.bottom-right { border-bottom-right-radius: 16px; }
+
+    .info-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--md-sys-color-on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .info-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--md-sys-color-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mountain-chart-card {
+      width: 100%;
+      padding: 15px 0px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+    }
+
+    .mountain-chart-svg {
+      width: 100%;
+      height: 120px;
+      overflow: visible;
+    }
+
+    .mountain-chart-labels {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--md-sys-color-on-surface-variant);
+      padding: 0 4px;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 150;
+      display: flex;
+      align-items: center;
+      width: calc(100% - 50px);
+      max-width: 380px;
+    }
+
+    .bottom-read-btn {
+      width: 100%;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--md-shape-full);
+      cursor: pointer;
+      color: var(--md-sys-color-on-surface);
+      font-size: 14px;
+      font-weight: 700;
+      transition: var(--app-active-transition);
+    }
+
+    .bottom-read-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--md-sys-color-on-surface);
+    }
+
+    .error-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 50vh;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .error-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+      opacity: 0.6;
+    }
+
+    .error-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .error-desc {
+      font-size: 12px;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-bottom: 16px;
+    }
+
+    .back-action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 160px;
+      height: 42px;
+      background-color: var(--md-sys-color-m3-grey-normal);
+      color: var(--md-sys-color-on-m3-grey);
+      border-radius: var(--md-shape-full);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--app-active-transition);
+    }
+
+    .back-action-btn:active {
+      background-color: var(--md-sys-color-m3-grey-active);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <button class="back-btn ripple-effect" id="backBtn" title="Kembali">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+    <div class="nav-title" id="navTitle"></div>
+    <button class="nav-fav-btn ripple-effect" id="favBtn" onclick="openSaveSettings()" title="Simpan">
+      <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+    </button>
+  </header>
+
+  <div class="content-wrapper">
+    <div class="ptr-container" id="ptrContainer">
+      <span class="ptr-text" id="ptrText">M</span>
+    </div>
+
+    <div class="scrollable-content" id="scrollableContent">
+      <main id="mainContainer" style="width: 100%;"></main>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="bottom-read-btn ripple-effect" id="readBtn" onclick="openReadPage()" title="Baca Manga">
+      <span>Baca Manga</span>
+    </button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCfCDgff5nwMYCx1EBDJEoJ8gzxKQ9Y__U",
+      authDomain: "my-mineplix.firebaseapp.com",
+      databaseURL: "https://my-mineplix-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "my-mineplix",
+      storageBucket: "my-mineplix.firebasestorage.app",
+      messagingSenderId: "141905130988",
+      appId: "1:141905130988:web:89e524e1dc577642e8bcc9",
+      measurementId: "G-B92GJ77NPF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const ANILIST_API_URL = 'https://graphql.anilist.co';
+    const TRANSLATE_STORAGE_KEY = 'mineplay_lang_pref';
+    let originalSynopsis = '';
+    let countdownInterval = null;
+
+    function createRipple(event) {
+      const button = event.currentTarget;
+      const circle = document.createElement("span");
+      const diameter = Math.max(button.clientWidth, button.clientHeight);
+      const radius = diameter / 2;
+
+      const rect = button.getBoundingClientRect();
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${event.clientX - rect.left - radius}px`;
+      circle.style.top = `${event.clientY - rect.top - radius}px`;
+      circle.classList.add("ripple-wave");
+
+      const ripple = button.getElementsByClassName("ripple-wave")[0];
+      if (ripple) {
+        ripple.remove();
+      }
+      button.appendChild(circle);
+    }
+
+    function initRipples() {
+      document.querySelectorAll('.ripple-effect').forEach(btn => {
+        btn.removeEventListener('pointerdown', createRipple);
+        btn.addEventListener('pointerdown', createRipple);
+      });
+    }
+
+    function sanitizeUsername(username) {
+      if (!username) return '';
+      return username.replace(/[.#$[\]]/g, "_");
+    }
+
+    function navigateTo(url) {
+      let targetUrl = url;
+      if (!/^https?:\/\//i.test(url) && !/^file:\/\//i.test(url)) {
+        if (window.location.protocol === 'file:') {
+          const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+          targetUrl = basePath + url;
+        } else {
+          targetUrl = 'file:///android_asset/' + url;
+        }
+      }
+
+      if (window.Android) {
+        if (typeof window.Android.openBridge === 'function') {
+          window.Android.openBridge(targetUrl);
+        } else if (typeof window.Android.openPage === 'function') {
+          window.Android.openPage(targetUrl);
+        } else if (typeof window.Android.openLogin === 'function' && url.includes('login.html')) {
+          window.Android.openLogin();
+        } else {
+          window.location.href = targetUrl;
+        }
+      } else if (window.android) {
+        if (typeof window.android.openLogin === 'function' && url.includes('login.html')) {
+          window.android.openLogin();
+        } else {
+          window.location.href = targetUrl;
+        }
+      } else {
+        window.location.href = targetUrl;
+      }
+    }
+
+    function openGenrePage(genreName) {
+      const cleanGenre = (genreName || '').toLowerCase().trim();
+      navigateTo(`moredata.html#genre=${encodeURIComponent(cleanGenre)}`);
+    }
+
+    function openCharPage(charId) {
+      if (charId) {
+        navigateTo(`settings.html#char=${charId}`);
+      }
+    }
+
+    function openReadPage() {
+      const mangaId = getMangaIdFromUrl();
+      if (mangaId) {
+        navigateTo(`read.html#${mangaId}`);
+      }
+    }
+
+    function getLoggedInUser() {
+      return localStorage.getItem('account:username') || localStorage.getItem('account:email');
+    }
+
+    function checkAuthAndProceed() {
+      const user = getLoggedInUser();
+      if (!user) {
+        navigateTo('login.html');
+        return null;
+      }
+      return user;
+    }
+
+    function getUserStatusData(username) {
+      try {
+        return JSON.parse(localStorage.getItem('mineplay_manga_status_' + username) || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function openSaveSettings() {
+      const user = checkAuthAndProceed();
+      if (!user) return;
+      const mangaId = getMangaIdFromUrl();
+      if (mangaId) {
+        navigateTo(`settings.html#opsisave=${mangaId}`);
+      }
+    }
+
+    function openLangSettings() {
+      navigateTo('settings.html#bahasa');
+    }
+
+    function updateFavUI(activeStatus) {
+      const favBtn = document.getElementById('favBtn');
+      if (favBtn) {
+        if (activeStatus && activeStatus !== 'REMOVE') {
+          favBtn.classList.add('active');
+        } else {
+          favBtn.classList.remove('active');
+        }
+      }
+    }
+
+    async function loadFavStatus() {
+      const user = getLoggedInUser();
+      const mangaId = getMangaIdFromUrl();
+
+      if (!user || !mangaId) {
+        updateFavUI(null);
+        return;
+      }
+
+      const userStatusData = getUserStatusData(user);
+      const mangaInfo = userStatusData[mangaId];
+
+      if (mangaInfo && mangaInfo.status) {
+        updateFavUI(mangaInfo.status);
+      } else {
+        updateFavUI(null);
+      }
+
+      try {
+        const cleanUser = sanitizeUsername(user);
+        const saveRef = ref(db, `save_manga/${cleanUser}/${mangaId}`);
+        const snapshot = await get(saveRef);
+
+        if (snapshot.exists()) {
+          const remoteData = snapshot.val();
+          if (remoteData && remoteData.status) {
+            updateFavUI(remoteData.status);
+          }
+        } else {
+          if (userStatusData[mangaId]) {
+            updateFavUI(null);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function executeGoBack() {
+      if (window.Android && typeof window.Android.goBack === 'function') {
+        window.Android.goBack();
+      } else if (window.android && typeof window.android.goBack === 'function') {
+        window.android.goBack();
+      } else {
+        window.history.back();
+      }
+    }
+
+    function getSavedLanguage() {
+      return localStorage.getItem(TRANSLATE_STORAGE_KEY) || 'en';
+    }
+
+    function getLangLabel(langCode) {
+      switch (langCode) {
+        case 'id': return 'Bahasa Indonesia';
+        case 'ja': return '日本語';
+        default: return 'English';
+      }
+    }
+
+    function handleImageLoad(imgElem) {
+      imgElem.classList.add('loaded');
+      const parent = imgElem.parentElement;
+      if (parent) {
+        parent.classList.remove('img-skeleton');
+      }
+    }
+
+    function handleImageError(imgElem) {
+      imgElem.style.display = 'none';
+      const parent = imgElem.parentElement;
+      if (parent) {
+        parent.classList.remove('img-skeleton');
+      }
+    }
+
+    function getMangaIdFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const idParam = urlParams.get('id');
+      const parsedId = parseInt(idParam, 10);
+      return isNaN(parsedId) ? null : parsedId;
+    }
+
+    const ANILIST_QUERY = `
+      query ($id: Int) {
+        Media(id: $id, type: MANGA) {
+          id
+          countryOfOrigin
+          title {
+            english
+            romaji
+            native
+          }
+          coverImage {
+            extraLarge
+            large
+          }
+          bannerImage
+          description(asHtml: false)
+          chapters
+          volumes
+          format
+          status
+          nextAiringEpisode {
+            airingAt
+            timeUntilAiring
+            episode
+          }
+          startDate {
+            year
+          }
+          averageScore
+          genres
+          staff(sort: [RELEVANCE], perPage: 8) {
+            edges {
+              role
+              node {
+                name {
+                  full
+                }
+                image {
+                  medium
+                }
+              }
+            }
+          }
+          stats {
+            scoreDistribution {
+              score
+              amount
+            }
+            statusDistribution {
+              status
+              amount
+            }
+          }
+          characters(sort: [ROLE, RELEVANCE], perPage: 10) {
+            edges {
+              role
+              node {
+                id
+                name {
+                  full
+                }
+                image {
+                  medium
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    async function fetchMangaDetailAniList(mangaId) {
+      try {
+        const aniListRes = await fetch(ANILIST_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            query: ANILIST_QUERY,
+            variables: { id: mangaId }
+          })
+        });
+
+        const aniListJson = await aniListRes.json();
+        return aniListJson?.data?.Media || null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    async function translateText(text, targetLang) {
+      if (targetLang === 'en') return originalSynopsis;
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data && data[0]) {
+          return data[0].map(item => item[0]).join('');
+        }
+        return text;
+      } catch (e) {
+        return text;
+      }
+    }
+
+    function getFormatLabel(manga) {
+      if (manga.format === 'ONE_SHOT' || manga.chapters === 1) {
+        return 'ONE-SHOT';
+      }
+      if (manga.countryOfOrigin === 'KR') return 'MANHWA';
+      if (manga.countryOfOrigin === 'CN' || manga.countryOfOrigin === 'TW') return 'MANHUA';
+      if (manga.format === 'NOVEL') return 'NOVEL';
+      return 'MANGA';
+    }
+
+    function startCountdown(targetTimestamp, nextEpNumber) {
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      const timerElem = document.getElementById('countdownTimer');
+      if (!timerElem) return;
+
+      function updateTimer() {
+        const now = Math.floor(Date.now() / 1000);
+        const diff = targetTimestamp - now;
+
+        if (diff <= 0) {
+          timerElem.innerText = `Ch / Ep ${nextEpNumber} Rilis!`;
+          clearInterval(countdownInterval);
+          return;
+        }
+
+        const days = Math.floor(diff / (3600 * 24));
+        const hours = Math.floor((diff % (3600 * 24)) / 3600);
+        const minutes = Math.floor((diff % 3600) / 60);
+        const seconds = diff % 60;
+
+        let timeStr = '';
+        if (days > 0) timeStr += `${days}h `;
+        if (hours > 0 || days > 0) timeStr += `${hours}j `;
+        timeStr += `${minutes}m ${seconds}d`;
+
+        timerElem.innerText = timeStr;
+      }
+
+      updateTimer();
+      countdownInterval = setInterval(updateTimer, 1000);
+    }
+
+    function generateMountainChartSvg(dataList, keyProp, labelProp, strokeColor, fillColor, chartId) {
+      if (!dataList || dataList.length === 0) return '';
+
+      const values = dataList.map(d => d[keyProp]);
+      const maxVal = Math.max(...values, 1);
+      const minVal = Math.min(...values, 0);
+
+      const width = 300;
+      const height = 100;
+      const padding = 10;
+
+      const rawNodes = dataList.map((item, idx) => {
+        const x = padding + (idx / (dataList.length - 1 || 1)) * (width - 2 * padding);
+        const normalizedVal = (item[keyProp] - minVal) / ((maxVal - minVal) || 1);
+        const y = (height - padding) - normalizedVal * (height - 2 * padding);
+        return { x, y, val: item[keyProp], label: item[labelProp] };
+      });
+
+      let pathD = `M ${rawNodes[0].x} ${rawNodes[0].y}`;
+
+      for (let i = 0; i < rawNodes.length - 1; i++) {
+        const p0 = rawNodes[i];
+        const p2 = rawNodes[i + 1];
+        const xc = (p0.x + p2.x) / 2;
+        const yc = (p0.y + p2.y) / 2;
+
+        pathD += ` Q ${p0.x} ${p0.y}, ${xc} ${yc}`;
+      }
+
+      const lastRaw = rawNodes[rawNodes.length - 1];
+      pathD += ` L ${lastRaw.x} ${lastRaw.y}`;
+      const closedPathD = `${pathD} L ${lastRaw.x} ${height} L ${rawNodes[0].x} ${height} Z`;
+
+      return `
+        <div class="mountain-chart-card" id="${chartId}">
+          <svg class="mountain-chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+            <defs>
+              <pattern id="grid_${chartId}" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+              </pattern>
+              <linearGradient id="grad_${chartId}" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="${fillColor}" stop-opacity="0.6" />
+                <stop offset="100%" stop-color="${fillColor}" stop-opacity="0.0" />
+              </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid_${chartId})" />
+            <path d="${closedPathD}" fill="url(#grad_${chartId})" />
+            <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" />
+          </svg>
+          <div class="mountain-chart-labels">
+            ${dataList.map(d => `<span>${d[labelProp]}</span>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    async function renderDetail(manga) {
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      const charEdges = manga.characters?.edges || [];
+      const staffEdges = manga.staff?.edges || [];
+      const mainContainer = document.getElementById('mainContainer');
+      const navTitle = document.getElementById('navTitle');
+
+      const titleMain = manga.title.english || manga.title.romaji || manga.title.native;
+      const titleSub = manga.title.native || manga.title.romaji || '';
+      
+      navTitle.innerText = titleMain;
+      navTitle.classList.remove('show');
+      document.title = `${titleMain} - Mineplay`;
+
+      const score = manga.averageScore ? `${(manga.averageScore / 10).toFixed(1)}/10` : 'N/A';
+      
+      const isOneShot = manga.format === 'ONE_SHOT' || manga.chapters === 1;
+
+      const formatLabel = getFormatLabel(manga);
+      const posterImg = manga.coverImage?.extraLarge || manga.coverImage?.large || '';
+      const bannerImg = manga.bannerImage || posterImg;
+      
+      let authorName = '-';
+      staffEdges.forEach(e => {
+        const role = (e.role || '').toLowerCase();
+        if (role.includes('story') || role.includes('author') || role.includes('original creator')) {
+          if (authorName === '-') authorName = e.node?.name?.full || '-';
+        }
+      });
+
+      let rawSynopsis = manga.description || 'No synopsis available.';
+      originalSynopsis = rawSynopsis.replace(/<[^>]*>?/gm, '').trim();
+
+      const savedLang = getSavedLanguage();
+      const savedLangLabel = getLangLabel(savedLang);
+
+      const genres = manga.genres || [];
+      const scoreDist = manga.stats?.scoreDistribution || [];
+      const statusDist = manga.stats?.statusDistribution || [];
+
+      const nextAiring = manga.nextAiringEpisode;
+
+      mainContainer.innerHTML = `
+        <div class="hero-container img-skeleton">
+          <img class="banner-img" src="${bannerImg}" alt="${titleMain}" onload="handleImageLoad(this)" onerror="handleImageError(this)">
+        </div>
+
+        <div class="details-scroll-wrapper">
+          <div class="poster-container img-skeleton">
+            <img class="poster-img" src="${posterImg}" alt="${titleMain}" onload="handleImageLoad(this)" onerror="handleImageError(this)">
+          </div>
+
+          <div class="content-container">
+            <div class="header-details">
+              <h1 class="manga-title-main" id="mangaTitleMain">${titleMain}</h1>
+              <div class="manga-title-sub">${titleSub}</div>
+              <div class="badges-row">
+                <span class="badge">${score}</span>
+                <span class="badge ${isOneShot ? 'oneshot-badge' : ''}">${formatLabel}</span>
+              </div>
+            </div>
+
+            ${nextAiring ? `
+              <div class="countdown-card">
+                <div class="countdown-title">Rilis Ch / Ep ${nextAiring.episode} Dalam</div>
+                <div class="countdown-timer" id="countdownTimer">--:--:--</div>
+              </div>
+            ` : ''}
+
+            ${genres.length > 0 ? `
+              <div class="genres-container">
+                <div class="genres-list">
+                  ${genres.map(g => `<span class="genre-chip ripple-effect" onclick="openGenrePage('${g}')">${g}</span>`).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            <div class="section-block">
+              <div class="section-header-row">
+                <div class="section-title">Synopsis</div>
+                <button class="trigger-sheet-btn ripple-effect" onclick="openLangSettings()">
+                  <span id="selectedLangLabel">${savedLangLabel}</span>
+                  <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+                </button>
+              </div>
+
+              <p class="synopsis-text" id="synopsisText">${originalSynopsis}</p>
+              <button class="toggle-synopsis-btn ripple-effect" id="toggleSynopsisBtn">Selengkapnya</button>
+            </div>
+
+            <div class="info-grid-grouped">
+              <div class="info-box top-left">
+                <span class="info-label">Status</span>
+                <span class="info-value">${manga.status || '-'}</span>
+              </div>
+              <div class="info-box top-right">
+                <span class="info-label">Tahun Rilis</span>
+                <span class="info-value">${manga.startDate?.year || '-'}</span>
+              </div>
+              <div class="info-box bottom-left">
+                <span class="info-label">Penulis</span>
+                <span class="info-value">${authorName}</span>
+              </div>
+              <div class="info-box bottom-right">
+                <span class="info-label">Asal Negara</span>
+                <span class="info-value">${manga.countryOfOrigin || '-'}</span>
+              </div>
+            </div>
+
+            ${scoreDist.length > 0 ? `
+              <div class="section-block">
+                <div class="section-title">Distribusi Skor</div>
+                ${generateMountainChartSvg(scoreDist, 'amount', 'score', '#3db4f2', '#3db4f2', 'scoreDistChart')}
+              </div>
+            ` : ''}
+
+            ${statusDist.length > 0 ? `
+              <div class="section-block">
+                <div class="section-title">Status Pembaca</div>
+                ${generateMountainChartSvg(statusDist, 'amount', 'status', '#f779a3', '#f779a3', 'statusDistChart')}
+              </div>
+            ` : ''}
+
+            ${charEdges.length > 0 ? `
+              <div class="section-block">
+                <div class="section-title">Karakter</div>
+                <div class="characters-scroll-list">
+                  ${charEdges.map(edge => {
+                    const charId = edge.node?.id || '';
+                    const charName = edge.node?.name?.full || 'Unknown';
+                    const charImg = edge.node?.image?.medium || '';
+                    
+                    return `
+                      <div class="character-card ripple-effect" onclick="openCharPage('${charId}')">
+                        <div class="char-profile">
+                          ${charImg ? `<img class="char-avatar" src="${charImg}" alt="${charName}" onload="handleImageLoad(this)" onerror="handleImageError(this)">` : '<div class="char-avatar"></div>'}
+                          <div class="char-info">
+                            <span class="char-name">${charName}</span>
+                            <span class="char-role">${edge.role || 'Main'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+          </div>
+        </div>
+      `;
+
+      if (nextAiring && nextAiring.airingAt) {
+        startCountdown(nextAiring.airingAt, nextAiring.episode);
+      }
+
+      const synopsisText = document.getElementById('synopsisText');
+      if (savedLang !== 'en') {
+        synopsisText.style.opacity = '0.3';
+        translateText(originalSynopsis, savedLang).then(translated => {
+          synopsisText.innerText = translated;
+          synopsisText.style.opacity = '0.9';
+        });
+      }
+
+      const toggleSynopsisBtn = document.getElementById('toggleSynopsisBtn');
+      if (synopsisText.scrollHeight <= 80) {
+        toggleSynopsisBtn.style.display = 'none';
+      }
+
+      toggleSynopsisBtn.addEventListener('click', () => {
+        const isExpanded = synopsisText.classList.toggle('expanded');
+        toggleSynopsisBtn.innerText = isExpanded ? 'Lebih Sedikit' : 'Selengkapnya';
+      });
+
+      setupTitleScrollObserver();
+      initRipples();
+      await loadFavStatus();
+    }
+
+    function setupTitleScrollObserver() {
+      const titleElement = document.getElementById('mangaTitleMain');
+      const navTitle = document.getElementById('navTitle');
+      const scrollableContent = document.getElementById('scrollableContent');
+
+      if (!titleElement || !scrollableContent) return;
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting && scrollableContent.scrollTop > 50) {
+            navTitle.classList.add('show');
+          } else {
+            navTitle.classList.remove('show');
+          }
+        });
+      }, {
+        root: scrollableContent,
+        threshold: 0
+      });
+
+      observer.observe(titleElement);
+    }
+
+    function renderErrorState() {
+      const mainContainer = document.getElementById('mainContainer');
+      mainContainer.innerHTML = `
+        <div class="error-container">
+          <div class="error-icon">ಠ⁠︵⁠ಠ</div>
+          <div class="error-title">Manga Tidak Ditemukan</div>
+          <div class="error-desc">Gagal memuat info manga atau periksa koneksi internet Anda.</div>
+          <button class="back-action-btn ripple-effect" onclick="executeGoBack()">Kembali</button>
+        </div>
+      `;
+      initRipples();
+    }
+
+    async function initPage() {
+      const mangaId = getMangaIdFromUrl();
+      if (!mangaId) {
+        renderErrorState();
+        return;
+      }
+
+      const mangaData = await fetchMangaDetailAniList(mangaId);
+      if (mangaData) {
+        await renderDetail(mangaData);
+      } else {
+        renderErrorState();
+      }
+    }
+
+    function setupPullToRefresh() {
+      const scrollableContent = document.getElementById('scrollableContent');
+      const ptrContainer = document.getElementById('ptrContainer');
+      const ptrText = document.getElementById('ptrText');
+      const navTitle = document.getElementById('navTitle');
+
+      let startY = 0;
+      let pulling = false;
+      let refreshing = false;
+      const threshold = 60;
+
+      scrollableContent.addEventListener('touchstart', (e) => {
+        if (scrollableContent.scrollTop === 0) {
+          startY = e.touches[0].clientY;
+          pulling = true;
+        }
+      }, { passive: true });
+
+      scrollableContent.addEventListener('touchmove', (e) => {
+        if (!pulling || refreshing) return;
+        const currentY = e.touches[0].clientY;
+        const diff = currentY - startY;
+
+        if (diff > 0 && scrollableContent.scrollTop === 0) {
+          navTitle.classList.remove('show');
+
+          const pullDistance = Math.min(diff * 0.45, 80);
+          ptrContainer.style.transform = `translateY(${pullDistance - 45}px)`;
+          scrollableContent.style.transform = `translateY(${pullDistance}px)`;
+          
+          ptrText.innerText = "M";
+          ptrText.classList.remove('expanding');
+        }
+      }, { passive: true });
+
+      scrollableContent.addEventListener('touchend', async () => {
+        if (!pulling || refreshing) return;
+        pulling = false;
+
+        const currentTransform = ptrContainer.style.transform;
+        const match = currentTransform.match(/translateY\(([-\d.]+)px\)/);
+        const currentTranslate = match ? parseFloat(match[1]) + 45 : 0;
+
+        if (currentTranslate >= threshold && scrollableContent.scrollTop === 0) {
+          refreshing = true;
+          ptrContainer.style.transform = `translateY(12px)`;
+          scrollableContent.style.transform = `translateY(55px)`;
+          
+          ptrText.innerText = "MineRead";
+          ptrText.classList.add('expanding');
+
+          await initPage();
+
+          setTimeout(() => {
+            ptrContainer.style.transform = `translateY(-50px)`;
+            scrollableContent.style.transform = `translateY(0px)`;
+            
+            setTimeout(() => {
+              ptrText.classList.remove('expanding');
+              ptrText.innerText = "M";
+              refreshing = false;
+            }, 350);
+          }, 500);
+        } else {
+          ptrContainer.style.transform = `translateY(-50px)`;
+          scrollableContent.style.transform = `translateY(0px)`;
+          ptrText.classList.remove('expanding');
+          ptrText.innerText = "M";
+        }
+      });
+
+      scrollableContent.addEventListener('scroll', () => {
+        if (scrollableContent.scrollTop <= 10) {
+          navTitle.classList.remove('show');
+        }
+      });
+    }
+
+    function setupBackButton() {
+      const backBtn = document.getElementById('backBtn');
+      if (backBtn) {
+        backBtn.addEventListener('click', () => {
+          executeGoBack();
+        });
+      }
+    }
+
+    window.openSaveSettings = openSaveSettings;
+    window.openLangSettings = openLangSettings;
+    window.handleImageLoad = handleImageLoad;
+    window.handleImageError = handleImageError;
+    window.executeGoBack = executeGoBack;
+    window.openGenrePage = openGenrePage;
+    window.openCharPage = openCharPage;
+    window.openReadPage = openReadPage;
+
+    window.addEventListener('popstate', () => {
+      document.getElementById('scrollableContent').scrollTop = 0;
+      initPage();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setupBackButton();
+      initPage();
+      setupPullToRefresh();
+      initRipples();
+    });
+  </script>
+</body>
+</html>
