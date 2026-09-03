@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mineplay - Profil & Autentikasi</title>
+  
+  <style>
+    @font-face {
+      font-family: 'Plus Jakarta Sans';
+      src: url('font/jakarta-sans.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root {
+      --md-sys-color-background: #000000;
+      --md-sys-color-surface: #1e1e24;
+      --md-sys-color-surface-variant: #131313;
+      --md-sys-color-surface-container-high: #222222;
+      
+      --md-sys-color-primary: #e3e3e3;
+      --md-sys-color-on-primary: #18181b;
+      --md-sys-color-primary-container: #3f3f46;
+      --md-sys-color-on-primary-container: #f4f4f5;
+
+      --md-sys-color-secondary: #a1a1aa;
+      --md-sys-color-on-background: #e3e3e3;
+      --md-sys-color-on-surface: #fff;
+      --md-sys-color-on-surface-variant: #9e9ea8;
+      --md-sys-color-error: #ffb4ab;
+      --md-sys-color-error-container: #93000a;
+      --md-sys-color-on-error-container: #ffdad6;
+
+      --md-shape-full: 9999px;
+      --font-family: 'Plus Jakarta Sans', sans-serif;
+
+      --app-active-scale: scale(0.96);
+      --app-active-transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100vh;
+      max-height: 100vh;
+      width: 100%;
+      overflow: hidden;
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      font-family: var(--font-family);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background-color: var(--md-sys-color-background);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: none;
+      z-index: 1000;
+      flex-shrink: 0;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-btn {
+      width: 36px;
+      height: 36px;
+      background-color: transparent;
+      color: var(--md-sys-color-on-surface);
+      border: none;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.2s ease;
+      padding: 0;
+    }
+
+    .back-btn:active {
+      transform: scale(0.9);
+      opacity: 0.7;
+    }
+
+    .back-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      color: var(--md-sys-color-on-background);
+      transition: transform 0.2s ease;
+    }
+
+    .info-wrapper {
+      position: relative;
+    }
+
+    .info-btn {
+      width: 34px;
+      height: 34px;
+      background-color: transparent;
+      color: var(--md-sys-color-on-surface);
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease, opacity 0.2s ease;
+      padding: 0;
+    }
+
+    .info-btn:active {
+      transform: scale(0.9);
+      opacity: 0.7;
+    }
+
+    .info-tooltip {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      width: 280px;
+      background-color: var(--md-sys-color-surface-container-high);
+      border: none;
+      color: var(--md-sys-color-on-surface);
+      padding: 14px 16px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      z-index: 1001;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px) scale(0.95);
+      transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .info-tooltip::after {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      right: 12px;
+      border-width: 6px;
+      border-style: solid;
+      border-color: transparent transparent var(--md-sys-color-surface-container-high) transparent;
+    }
+
+    .info-tooltip.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    .info-tooltip-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--md-sys-color-primary);
+      margin-bottom: 6px;
+    }
+
+    .info-tooltip-text {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .auth-container {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .auth-card {
+      width: 100%;
+      border: none;
+      padding: 24px 20px;
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      position: relative;
+      margin: auto 0;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background-color: var(--md-sys-color-surface-variant);
+      border-radius: var(--md-shape-full);
+      padding: 4px;
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      color: var(--md-sys-color-on-surface-variant);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: var(--md-shape-full);
+      cursor: pointer;
+      outline: none;
+      transition: background-color 0.25s cubic-bezier(0.2, 0, 0, 1), color 0.25s ease, transform 0.15s ease;
+    }
+
+    .tab-btn:active {
+      transform: scale(0.95);
+    }
+
+    .tab-btn.active {
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+    }
+
+    .form-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .auth-form {
+      width: 100%;
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .auth-form.hidden {
+      display: none;
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    .auth-form.fade-in {
+      animation: formSmoothIn 0.35s cubic-bezier(0.2, 0, 0, 1) forwards;
+    }
+
+    @keyframes formSmoothIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-bottom: 6px;
+      padding-left: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 48px;
+      background-color: var(--md-sys-color-surface-variant);
+      border: 2px solid var(--md-sys-color-background);
+      border-radius: var(--md-shape-full);
+      padding: 0 20px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--md-sys-color-on-surface);
+      outline: none;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .form-input:focus {
+      border: 2px solid var(--md-sys-color-surface-container-high);
+      outline: none;
+    }
+
+    .captcha-box {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .captcha-question {
+      background-color: var(--md-sys-color-surface-variant);
+      color: var(--md-sys-color-primary);
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 0 16px;
+      height: 48px;
+      border-radius: var(--md-shape-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      min-width: 100px;
+    }
+
+    .privacy-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+      padding-left: 6px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .checkbox-wrapper {
+      position: relative;
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .privacy-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+      background-color: var(--md-sys-color-surface-variant);
+      border: none;
+      cursor: pointer;
+      outline: none;
+      margin: 0;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .checkbox-icon {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.3) rotate(-10deg);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .checkbox-icon svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: var(--md-sys-color-on-primary);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .privacy-checkbox:checked {
+      background-color: var(--md-sys-color-primary);
+      border: none;
+      transform: scale(1.05);
+    }
+
+    .privacy-checkbox:checked + .checkbox-icon {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+
+    .privacy-checkbox:active {
+      transform: scale(0.88);
+    }
+
+    .privacy-label {
+      font-size: 12px;
+      color: var(--md-sys-color-on-surface-variant);
+      line-height: 1.4;
+    }
+
+    .privacy-label a {
+      color: var(--md-sys-color-primary);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    .submit-btn {
+      width: 100%;
+      height: 48px;
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      outline: none;
+      border-radius: var(--md-shape-full);
+      cursor: pointer;
+      margin-top: 8px;
+      transition: var(--app-active-transition), background-color 0.2s ease;
+    }
+
+    .submit-btn:active {
+      transform: var(--app-active-scale);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .field-tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 16px;
+      background-color: var(--md-sys-color-error);
+      color: #600004;
+      padding: 6px 12px;
+      border-radius: 18px;
+      font-size: 11px;
+      font-weight: 700;
+      z-index: 99;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px) scale(0.95);
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .field-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 16px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--md-sys-color-error) transparent transparent transparent;
+    }
+
+    .field-tooltip.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .logged-in-box {
+      text-align: left;
+      display: none;
+    }
+
+    .user-info-card {
+      background-color: var(--md-sys-color-surface-variant);
+      border: none;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .user-info-item {
+      margin-bottom: 12px;
+    }
+
+    .user-info-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .user-info-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--md-sys-color-on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .user-info-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--md-sys-color-on-surface);
+      word-break: break-all;
+    }
+
+    .logout-btn {
+      width: 100%;
+      height: 48px;
+      background-color: var(--md-sys-color-surface-container-high);
+      color: var(--md-sys-color-error);
+      border: none;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      outline: none;
+      border-radius: var(--md-shape-full);
+      cursor: pointer;
+      transition: var(--app-active-transition);
+    }
+
+    .logout-btn:active {
+      transform: var(--app-active-scale);
+      background-color: var(--md-sys-color-error-container);
+      color: var(--md-sys-color-on-error-container);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="nav-left">
+      <button type="button" class="back-btn" onclick="handleGoBack()" aria-label="Kembali">
+        <svg viewBox="0 0 24 24">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <div class="brand-title">Login / Register</div>
+    </div>
+    
+    <div class="info-wrapper">
+      <button type="button" class="info-btn" id="infoBtn" onclick="toggleInfoTooltip(event)">?</button>
+      <div class="info-tooltip" id="infoTooltip">
+        <div class="info-tooltip-title">Info Sinkronisasi Akun</div>
+        <div class="info-tooltip-text">
+          Fitur login ini digunakan khusus untuk sinkronisasi data simpanan anime, bookmark, dan riwayat tontonan Anda secara aman.
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="auth-container">
+    <div class="auth-card">
+      
+      <div id="authForms">
+        <div class="auth-tabs">
+          <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Masuk</button>
+          <button class="tab-btn" id="tabRegister" onclick="switchTab('register')">Daftar</button>
+        </div>
+
+        <div class="form-wrapper">
+          <form id="loginForm" class="auth-form fade-in" onsubmit="handleLogin(event)" novalidate>
+            <div class="form-group" id="groupLoginUsername">
+              <label class="form-label">Username</label>
+              <input type="text" id="loginUsername" class="form-input" placeholder="Masukkan username" autocomplete="off" oninput="hideTooltip(this)">
+              <div class="field-tooltip" id="tooltipLoginUsername">Harap isi username!</div>
+            </div>
+
+            <div class="form-group" id="groupLoginPassword">
+              <label class="form-label">Password</label>
+              <input type="password" id="loginPassword" class="form-input" placeholder="Masukkan password" oninput="hideTooltip(this)">
+              <div class="field-tooltip" id="tooltipLoginPassword">Harap isi password!</div>
+            </div>
+
+            <div class="form-group" id="groupLoginCaptcha">
+              <label class="form-label">Verifikasi Captcha</label>
+              <div class="captcha-box">
+                <div class="captcha-question" id="loginCaptchaLabel">0 + 0 = ?</div>
+                <input type="number" id="loginCaptchaInput" class="form-input" placeholder="Hasil" autocomplete="off" oninput="hideTooltip(this)">
+              </div>
+              <div class="field-tooltip" id="tooltipLoginCaptcha">Isi jawaban captcha!</div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="loginBtn">Masuk</button>
+          </form>
+
+          <form id="registerForm" class="auth-form hidden" onsubmit="handleRegister(event)" novalidate>
+            <div class="form-group" id="groupRegEmail">
+              <label class="form-label">Email</label>
+              <input type="email" id="regEmail" class="form-input" placeholder="contoh@email.com" autocomplete="off" oninput="hideTooltip(this)">
+              <div class="field-tooltip" id="tooltipRegEmail">Isi alamat email!</div>
+            </div>
+
+            <div class="form-group" id="groupRegUsername">
+              <label class="form-label">Username</label>
+              <input type="text" id="regUsername" class="form-input" placeholder="Buat username" autocomplete="off" oninput="hideTooltip(this)">
+              <div class="field-tooltip" id="tooltipRegUsername">Buat username baru!</div>
+            </div>
+
+            <div class="form-group" id="groupRegPassword">
+              <label class="form-label">Password</label>
+              <input type="password" id="regPassword" class="form-input" placeholder="Buat password" oninput="hideTooltip(this)">
+              <div class="field-tooltip" id="tooltipRegPassword">Password wajib diisi!</div>
+            </div>
+
+            <div class="form-group" id="groupRegCaptcha">
+              <label class="form-label">Verifikasi Captcha</label>
+              <div class="captcha-box">
+                <div class="captcha-question" id="regCaptchaLabel">0 + 0 = ?</div>
+                <input type="number" id="regCaptchaInput" class="form-input" placeholder="Hasil" autocomplete="off" oninput="hideTooltip(this)">
+              </div>
+              <div class="field-tooltip" id="tooltipRegCaptcha">Isi jawaban captcha!</div>
+            </div>
+
+            <label class="privacy-group" id="groupRegPrivacy">
+              <div class="checkbox-wrapper">
+                <input type="checkbox" id="regPrivacy" class="privacy-checkbox" onchange="hideTooltip(this)">
+                <div class="checkbox-icon">
+                  <svg viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <span class="privacy-label">Saya menyetujui <u>Kebijakan Privasi</u> Mineplay.</span>
+              <div class="field-tooltip" id="tooltipRegPrivacy" style="bottom: 100%;">Centang persetujuan ini!</div>
+            </label>
+
+            <button type="submit" class="submit-btn" id="regBtn">Buat Akun</button>
+          </form>
+        </div>
+      </div>
+
+      <div id="loggedInBox" class="logged-in-box">
+        <div class="user-info-card">
+          <div class="user-info-item">
+            <div class="user-info-label">Username</div>
+            <div class="user-info-value" id="infoUsername">-</div>
+          </div>
+          <div class="user-info-item">
+            <div class="user-info-label">Email</div>
+            <div class="user-info-value" id="infoEmail">-</div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">Keluar Akun</button>
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCfCDgff5nwMYCx1EBDJEoJ8gzxKQ9Y__U",
+      authDomain: "my-mineplix.firebaseapp.com",
+      databaseURL: "https://my-mineplix-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "my-mineplix",
+      storageBucket: "my-mineplix.firebasestorage.app",
+      messagingSenderId: "141905130988",
+      appId: "1:141905130988:web:89e524e1dc577642e8bcc9",
+      measurementId: "G-B92GJ77NPF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let captchaAnswers = {
+      login: 0,
+      register: 0
+    };
+
+    let tooltipTimer = null;
+
+    function isValidEmail(email) {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailPattern.test(email);
+    }
+
+    window.handleGoBack = function() {
+      if (window.Android && typeof window.Android.goBack === 'function') {
+        window.Android.goBack();
+      } else {
+        window.history.back();
+      }
+    };
+
+    window.toggleInfoTooltip = function(e) {
+      e.stopPropagation();
+      const tooltip = document.getElementById('infoTooltip');
+      tooltip.classList.toggle('show');
+    };
+
+    document.addEventListener('click', function(e) {
+      const tooltip = document.getElementById('infoTooltip');
+      const infoBtn = document.getElementById('infoBtn');
+      if (tooltip && !tooltip.contains(e.target) && e.target !== infoBtn) {
+        tooltip.classList.remove('show');
+      }
+      clearAllTooltips();
+    });
+
+    function generateCaptcha(type) {
+      const num1 = Math.floor(Math.random() * 9) + 1;
+      const num2 = Math.floor(Math.random() * 9) + 1;
+      captchaAnswers[type] = num1 + num2;
+      
+      const labelEl = document.getElementById(type === 'login' ? 'loginCaptchaLabel' : 'regCaptchaLabel');
+      if (labelEl) {
+        labelEl.innerText = `${num1} + ${num2} = ?`;
+      }
+    }
+
+    window.showFieldTooltip = function(inputId, tooltipId, message) {
+      clearAllTooltips();
+      const inputEl = document.getElementById(inputId);
+      const tooltipEl = document.getElementById(tooltipId);
+
+      if (message) tooltipEl.innerText = message;
+      
+      tooltipEl.classList.add('show');
+      if (inputEl && typeof inputEl.focus === 'function') {
+        inputEl.focus();
+      }
+
+      if (tooltipTimer) clearTimeout(tooltipTimer);
+      tooltipTimer = setTimeout(() => {
+        tooltipEl.classList.remove('show');
+      }, 3000);
+    };
+
+    window.hideTooltip = function(inputEl) {
+      const parent = inputEl.closest('.form-group') || inputEl.closest('.privacy-group');
+      if (parent) {
+        const tooltip = parent.querySelector('.field-tooltip');
+        if (tooltip) tooltip.classList.remove('show');
+      }
+    };
+
+    function clearAllTooltips() {
+      document.querySelectorAll('.field-tooltip').forEach(t => t.classList.remove('show'));
+    }
+
+    window.navigateTo = function(url) {
+      let targetUrl = url;
+      if (!/^https?:\/\//i.test(url) && !/^file:\/\//i.test(url)) {
+        if (window.location.protocol === 'file:') {
+          const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+          targetUrl = basePath + url;
+        } else {
+          targetUrl = 'file:///android_asset/' + url;
+        }
+      }
+      if (window.Android && typeof window.Android.openBridge === 'function') {
+        window.Android.openBridge(targetUrl);
+      } else {
+        window.location.href = targetUrl;
+      }
+    };
+
+    window.switchTab = function(type) {
+      clearAllTooltips();
+      const tabLogin = document.getElementById('tabLogin');
+      const tabRegister = document.getElementById('tabRegister');
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+
+      if (type === 'login') {
+        if (tabLogin.classList.contains('active')) return;
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+
+        registerForm.classList.add('hidden');
+        registerForm.classList.remove('fade-in');
+
+        loginForm.classList.remove('hidden');
+        void loginForm.offsetWidth;
+        loginForm.classList.add('fade-in');
+
+        generateCaptcha('login');
+      } else {
+        if (tabRegister.classList.contains('active')) return;
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+
+        loginForm.classList.add('hidden');
+        loginForm.classList.remove('fade-in');
+
+        registerForm.classList.remove('hidden');
+        void registerForm.offsetWidth;
+        registerForm.classList.add('fade-in');
+
+        generateCaptcha('register');
+      }
+    };
+
+    async function checkSession() {
+      const savedUser = localStorage.getItem('account:username');
+      const savedEmail = localStorage.getItem('account:email');
+      const authForms = document.getElementById('authForms');
+      const loggedInBox = document.getElementById('loggedInBox');
+
+      if (savedUser) {
+        authForms.style.display = 'none';
+        loggedInBox.style.display = 'block';
+        document.getElementById('infoUsername').innerText = savedUser;
+        document.getElementById('infoEmail').innerText = savedEmail || 'Email tidak tersedia';
+
+        if (!savedEmail) {
+          try {
+            const dbRef = ref(db);
+            const snapshot = await get(child(dbRef, `account/${savedUser}`));
+            if (snapshot.exists()) {
+              const userData = snapshot.val();
+              if (userData.email) {
+                localStorage.setItem('account:email', userData.email);
+                document.getElementById('infoEmail').innerText = userData.email;
+              }
+            }
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      } else {
+        authForms.style.display = 'block';
+        loggedInBox.style.display = 'none';
+        generateCaptcha('login');
+      }
+    }
+
+    window.handleLogin = async function(e) {
+      e.preventDefault();
+      clearAllTooltips();
+
+      const usernameInput = document.getElementById('loginUsername').value.trim();
+      const passwordInput = document.getElementById('loginPassword').value;
+      const captchaInput = document.getElementById('loginCaptchaInput').value.trim();
+      const btn = document.getElementById('loginBtn');
+
+      if (!usernameInput) {
+        showFieldTooltip('loginUsername', 'tooltipLoginUsername', 'Kolom ini wajib diisi!');
+        return;
+      }
+
+      if (!passwordInput) {
+        showFieldTooltip('loginPassword', 'tooltipLoginPassword', 'Password wajib diisi!');
+        return;
+      }
+
+      if (!captchaInput) {
+        showFieldTooltip('loginCaptchaInput', 'tooltipLoginCaptcha', 'Hitung captcha dulu!');
+        return;
+      }
+
+      if (parseInt(captchaInput, 10) !== captchaAnswers.login) {
+        showFieldTooltip('loginCaptchaInput', 'tooltipLoginCaptcha', 'Jawaban salah!');
+        generateCaptcha('login');
+        document.getElementById('loginCaptchaInput').value = '';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Memproses...';
+
+      try {
+        const dbRef = ref(db);
+        const snapshot = await get(child(dbRef, `account/${usernameInput}`));
+
+        if (snapshot.exists()) {
+          const userData = snapshot.val();
+          if (userData.password === passwordInput) {
+            localStorage.setItem('account:username', usernameInput);
+            if (userData.email) {
+              localStorage.setItem('account:email', userData.email);
+            }
+            setTimeout(() => {
+              handleGoBack();
+            }, 300);
+          } else {
+            showFieldTooltip('loginPassword', 'tooltipLoginPassword', 'Password kamu salah!');
+            generateCaptcha('login');
+          }
+        } else {
+          showFieldTooltip('loginUsername', 'tooltipLoginUsername', 'Username tidak ditemukan!');
+          generateCaptcha('login');
+        }
+      } catch (err) {
+        console.error(err);
+        showFieldTooltip('loginBtn', 'tooltipLoginUsername', 'Gagal terhubung ke database.');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Masuk';
+      }
+    };
+
+    window.handleRegister = async function(e) {
+      e.preventDefault();
+      clearAllTooltips();
+
+      const emailInput = document.getElementById('regEmail').value.trim();
+      const usernameInput = document.getElementById('regUsername').value.trim().toLowerCase();
+      const passwordInput = document.getElementById('regPassword').value;
+      const captchaInput = document.getElementById('regCaptchaInput').value.trim();
+      const privacyCheck = document.getElementById('regPrivacy').checked;
+      const btn = document.getElementById('regBtn');
+
+      if (!emailInput) {
+        showFieldTooltip('regEmail', 'tooltipRegEmail', 'Email wajib diisi!');
+        return;
+      }
+
+      if (!isValidEmail(emailInput)) {
+        showFieldTooltip('regEmail', 'tooltipRegEmail', 'Format email tidak valid!');
+        return;
+      }
+
+      if (!usernameInput) {
+        showFieldTooltip('regUsername', 'tooltipRegUsername', 'Buat username kamu!');
+        return;
+      }
+
+      if (usernameInput.includes(' ') || usernameInput.includes('/') || usernameInput.includes('.')) {
+        showFieldTooltip('regUsername', 'tooltipRegUsername', 'Tidak boleh ada spasi/karakter khusus!');
+        return;
+      }
+
+      if (!passwordInput) {
+        showFieldTooltip('regPassword', 'tooltipRegPassword', 'Buat password kamu!');
+        return;
+      }
+
+      if (!captchaInput) {
+        showFieldTooltip('regCaptchaInput', 'tooltipRegCaptcha', 'Hitung captcha dulu!');
+        return;
+      }
+
+      if (parseInt(captchaInput, 10) !== captchaAnswers.register) {
+        showFieldTooltip('regCaptchaInput', 'tooltipRegCaptcha', 'Jawaban captcha salah!');
+        generateCaptcha('register');
+        document.getElementById('regCaptchaInput').value = '';
+        return;
+      }
+
+      if (!privacyCheck) {
+        showFieldTooltip('regPrivacy', 'tooltipRegPrivacy', 'Setujui syarat & ketentuan dulu!');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Mendaftarkan...';
+
+      try {
+        const userRef = ref(db, `account/${usernameInput}`);
+        const snapshot = await get(userRef);
+
+        if (snapshot.exists()) {
+          showFieldTooltip('regUsername', 'tooltipRegUsername', 'Username sudah dipakai!');
+          generateCaptcha('register');
+        } else {
+          await set(userRef, {
+            email: emailInput,
+            username: usernameInput,
+            password: passwordInput
+          });
+
+          localStorage.setItem('account:username', usernameInput);
+          localStorage.setItem('account:email', emailInput);
+          
+          setTimeout(() => {
+            handleGoBack();
+          }, 300);
+        }
+      } catch (err) {
+        console.error(err);
+        showFieldTooltip('regUsername', 'tooltipRegUsername', 'Gagal mendaftar. Cek koneksi.');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Buat Akun';
+      }
+    };
+
+    window.handleLogout = function() {
+      localStorage.removeItem('account:username');
+      localStorage.removeItem('account:email');
+      document.getElementById('loginUsername').value = '';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginCaptchaInput').value = '';
+      document.getElementById('regEmail').value = '';
+      document.getElementById('regUsername').value = '';
+      document.getElementById('regPassword').value = '';
+      document.getElementById('regCaptchaInput').value = '';
+      document.getElementById('regPrivacy').checked = false;
+      switchTab('login');
+      checkSession();
+    };
+
+    window.addEventListener('DOMContentLoaded', checkSession);
+  </script>
+</body>
+</html>
