@@ -607,14 +607,14 @@
     import { getDatabase, ref, set, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCfCDgff5nwMYCx1EBDJEoJ8gzxKQ9Y__U",
-      authDomain: "my-mineplix.firebaseapp.com",
-      databaseURL: "https://my-mineplix-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "my-mineplix",
-      storageBucket: "my-mineplix.firebasestorage.app",
-      messagingSenderId: "141905130988",
-      appId: "1:141905130988:web:89e524e1dc577642e8bcc9",
-      measurementId: "G-B92GJ77NPF"
+      apiKey: "AIzaSyCUIU56gmsBa--tSQCS3qvXV6-cAC537rA",
+      authDomain: "mineread-2d3b4.firebaseapp.com",
+      databaseURL: "https://mineread-2d3b4-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "mineread-2d3b4",
+      storageBucket: "mineread-2d3b4.firebasestorage.app",
+      messagingSenderId: "327279446968",
+      appId: "1:327279446968:web:fef4fca38241e7c3899d4d",
+      measurementId: "G-WZEJ797GRS"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -651,9 +651,9 @@
       });
     }
 
-    function sanitizeUsername(username) {
-      if (!username) return '';
-      return username.replace(/[.#$[\]]/g, "_");
+    function sanitizeKey(key) {
+      if (!key) return '';
+      return String(key).replace(/[.#$[\]]/g, "_");
     }
 
     function executeGoBack() {
@@ -666,20 +666,43 @@
       }
     }
 
-    function getLoggedInUser() {
-      return localStorage.getItem('account:username') || localStorage.getItem('account:email');
+    // Deteksi User UUID dari latar belakang (Login/Storage)
+    function getLoggedInUserUuid() {
+      let uuid = localStorage.getItem('account:uuid') || 
+                 localStorage.getItem('account:uid') || 
+                 localStorage.getItem('user_id') || 
+                 localStorage.getItem('uuid');
+
+      // Fallback: Apabila user login via username/email lama, periksa uuid cadangan
+      if (!uuid) {
+        const username = localStorage.getItem('account:username') || localStorage.getItem('account:email');
+        if (username) {
+          uuid = 'usr_' + sanitizeKey(username);
+        }
+      }
+
+      // Generasi ID Unik Anonim Sementara jika tidak ada sesi login latar belakang
+      if (!uuid) {
+        uuid = localStorage.getItem('mineplay_anon_uuid');
+        if (!uuid) {
+          uuid = 'anon_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('mineplay_anon_uuid', uuid);
+        }
+      }
+
+      return sanitizeKey(uuid);
     }
 
-    function getUserStatusData(username) {
+    function getUserStatusData(userUuid) {
       try {
-        return JSON.parse(localStorage.getItem('mineplay_manga_status_' + username) || '{}');
+        return JSON.parse(localStorage.getItem('mineplay_manga_status_' + userUuid) || '{}');
       } catch (e) {
         return {};
       }
     }
 
-    function saveUserStatusData(username, data) {
-      localStorage.setItem('mineplay_manga_status_' + username, JSON.stringify(data));
+    function saveUserStatusData(userUuid, data) {
+      localStorage.setItem('mineplay_manga_status_' + userUuid, JSON.stringify(data));
       let bookmarksList = [];
       Object.keys(data).forEach(id => {
         if (data[id] && data[id].status && data[id].status !== 'REMOVE') {
@@ -841,15 +864,14 @@
     }
 
     async function selectMangaStatus(statusValue) {
-      const user = getLoggedInUser();
-      if (!user) return;
+      const userUuid = getLoggedInUserUuid();
+      if (!userUuid) return;
 
       const mangaId = getMangaIdFromHash();
       if (!mangaId) return;
 
-      const cleanUser = sanitizeUsername(user);
-      const saveRef = ref(db, `save_manga/${cleanUser}/${mangaId}`);
-      const userStatusData = getUserStatusData(user);
+      const saveRef = ref(db, `save_manga/${userUuid}/${mangaId}`);
+      const userStatusData = getUserStatusData(userUuid);
 
       if (statusValue === 'REMOVE') {
         delete userStatusData[mangaId];
@@ -882,7 +904,7 @@
         }
       }
 
-      saveUserStatusData(user, userStatusData);
+      saveUserStatusData(userUuid, userStatusData);
     }
 
     function selectTranslateLanguage(langCode) {
@@ -932,15 +954,14 @@
 
       updateFavUI(null);
 
-      const user = getLoggedInUser();
-      if (user) {
-        const userStatusData = getUserStatusData(user);
+      const userUuid = getLoggedInUserUuid();
+      if (userUuid) {
+        const userStatusData = getUserStatusData(userUuid);
         if (userStatusData[mangaId] && userStatusData[mangaId].status) {
           updateFavUI(userStatusData[mangaId].status);
         }
 
-        const cleanUser = sanitizeUsername(user);
-        const saveRef = ref(db, `save_manga/${cleanUser}/${mangaId}`);
+        const saveRef = ref(db, `save_manga/${userUuid}/${mangaId}`);
         get(saveRef).then((snapshot) => {
           if (snapshot.exists()) {
             const data = snapshot.val();
@@ -950,12 +971,12 @@
                 ...userStatusData[mangaId],
                 ...data
               };
-              saveUserStatusData(user, userStatusData);
+              saveUserStatusData(userUuid, userStatusData);
             }
           } else {
             if (userStatusData[mangaId]) {
               delete userStatusData[mangaId];
-              saveUserStatusData(user, userStatusData);
+              saveUserStatusData(userUuid, userStatusData);
             }
             updateFavUI(null);
           }
@@ -1004,12 +1025,12 @@
           coverContainer.classList.remove('skeleton');
         }
 
-        if (user) {
-          const userStatusData = getUserStatusData(user);
+        if (userUuid) {
+          const userStatusData = getUserStatusData(userUuid);
           if (userStatusData[mangaId]) {
             userStatusData[mangaId].title = currentFetchedTitle;
             userStatusData[mangaId].poster = coverSrc || bannerSrc;
-            saveUserStatusData(user, userStatusData);
+            saveUserStatusData(userUuid, userStatusData);
           }
         }
       } else {
