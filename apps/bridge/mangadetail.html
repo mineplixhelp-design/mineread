@@ -744,14 +744,14 @@
     import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCfCDgff5nwMYCx1EBDJEoJ8gzxKQ9Y__U",
-      authDomain: "my-mineplix.firebaseapp.com",
-      databaseURL: "https://my-mineplix-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "my-mineplix",
-      storageBucket: "my-mineplix.firebasestorage.app",
-      messagingSenderId: "141905130988",
-      appId: "1:141905130988:web:89e524e1dc577642e8bcc9",
-      measurementId: "G-B92GJ77NPF"
+      apiKey: "AIzaSyCUIU56gmsBa--tSQCS3qvXV6-cAC537rA",
+      authDomain: "mineread-2d3b4.firebaseapp.com",
+      databaseURL: "https://mineread-2d3b4-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "mineread-2d3b4",
+      storageBucket: "mineread-2d3b4.firebasestorage.app",
+      messagingSenderId: "327279446968",
+      appId: "1:327279446968:web:fef4fca38241e7c3899d4d",
+      measurementId: "G-WZEJ797GRS"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -843,19 +843,6 @@
       }
     }
 
-    function getLoggedInUser() {
-      return localStorage.getItem('account:username') || localStorage.getItem('account:email');
-    }
-
-    function checkAuthAndProceed() {
-      const user = getLoggedInUser();
-      if (!user) {
-        navigateTo('https://mineread.vercel.app/apps/bridge/login.html');
-        return null;
-      }
-      return user;
-    }
-
     function getUserStatusData(username) {
       try {
         return JSON.parse(localStorage.getItem('mineplay_manga_status_' + username) || '{}');
@@ -865,8 +852,6 @@
     }
 
     function openSaveSettings() {
-      const user = checkAuthAndProceed();
-      if (!user) return;
       const mangaId = getMangaIdFromUrl();
       if (mangaId) {
         navigateTo(`https://mineread.vercel.app/apps/bridge/moreset.html#opsisave=${mangaId}`);
@@ -889,10 +874,15 @@
     }
 
     async function loadFavStatus() {
-      const user = getLoggedInUser();
       const mangaId = getMangaIdFromUrl();
+      const user = localStorage.getItem('account:username') || localStorage.getItem('account:email');
 
-      if (!user || !mangaId) {
+      if (!mangaId) {
+        updateFavUI(null);
+        return;
+      }
+
+      if (!user) {
         updateFavUI(null);
         return;
       }
