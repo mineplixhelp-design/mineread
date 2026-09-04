@@ -602,562 +602,573 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, set, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getDatabase, ref, set, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCUIU56gmsBa--tSQCS3qvXV6-cAC537rA",
-      authDomain: "mineread-2d3b4.firebaseapp.com",
-      databaseURL: "https://mineread-2d3b4-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "mineread-2d3b4",
-      storageBucket: "mineread-2d3b4.firebasestorage.app",
-      messagingSenderId: "327279446968",
-      appId: "1:327279446968:web:fef4fca38241e7c3899d4d",
-      measurementId: "G-WZEJ797GRS"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCUIU56gmsBa--tSQCS3qvXV6-cAC537rA",
+    authDomain: "mineread-2d3b4.firebaseapp.com",
+    databaseURL: "https://mineread-2d3b4-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "mineread-2d3b4",
+    storageBucket: "mineread-2d3b4.firebasestorage.app",
+    messagingSenderId: "327279446968",
+    appId: "1:327279446968:web:fef4fca38241e7c3899d4d",
+    measurementId: "G-WZEJ797GRS"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
 
-    const ANILIST_API_URL = 'https://graphql.anilist.co';
-    const TRANSLATE_STORAGE_KEY = 'mineplay_lang_pref';
+  const ANILIST_API_URL = 'https://graphql.anilist.co';
+  const TRANSLATE_STORAGE_KEY = 'mineplay_lang_pref';
 
-    let currentFetchedTitle = '';
-    let currentUser = null;
+  let currentFetchedTitle = '';
+  let currentUser = null;
 
-    function createRipple(event) {
-      const button = event.currentTarget;
-      const circle = document.createElement("span");
-      const diameter = Math.max(button.clientWidth, button.clientHeight);
-      const radius = diameter / 2;
+  // LANGSUNG EXPOSE FUNGSI KE WINDOW SEBELUM SETTING LAIN
+  window.selectMangaStatus = selectMangaStatus;
+  window.selectTranslateLanguage = selectTranslateLanguage;
+  window.executeGoBack = executeGoBack;
 
-      const rect = button.getBoundingClientRect();
-      circle.style.width = circle.style.height = `${diameter}px`;
-      circle.style.left = `${event.clientX - rect.left - radius}px`;
-      circle.style.top = `${event.clientY - rect.top - radius}px`;
-      circle.classList.add("ripple-wave");
+  function createRipple(event) {
+    const button = event.currentTarget;
+    const circle = document.createElement("span");
+    const diameter = Math.max(button.clientWidth, button.clientHeight);
+    const radius = diameter / 2;
 
-      const ripple = button.getElementsByClassName("ripple-wave")[0];
-      if (ripple) {
-        ripple.remove();
+    const rect = button.getBoundingClientRect();
+    circle.style.width = circle.style.height = `${diameter}px`;
+    circle.style.left = `${event.clientX - rect.left - radius}px`;
+    circle.style.top = `${event.clientY - rect.top - radius}px`;
+    circle.classList.add("ripple-wave");
+
+    const ripple = button.getElementsByClassName("ripple-wave")[0];
+    if (ripple) {
+      ripple.remove();
+    }
+    button.appendChild(circle);
+  }
+
+  function initRipples() {
+    document.querySelectorAll('.ripple-effect').forEach(btn => {
+      btn.removeEventListener('pointerdown', createRipple);
+      btn.addEventListener('pointerdown', createRipple);
+    });
+  }
+
+  function executeGoBack() {
+    if (window.Android && typeof window.Android.goBack === 'function') {
+      window.Android.goBack();
+    } else if (window.android && typeof window.android.goBack === 'function') {
+      window.android.goBack();
+    } else {
+      window.history.back();
+    }
+  }
+
+  function getUserStatusData(uid) {
+    try {
+      return JSON.parse(localStorage.getItem('mineplay_manga_status_' + uid) || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveUserStatusData(uid, data) {
+    localStorage.setItem('mineplay_manga_status_' + uid, JSON.stringify(data));
+    let bookmarksList = [];
+    Object.keys(data).forEach(id => {
+      if (data[id] && data[id].status && data[id].status !== 'REMOVE') {
+        bookmarksList.push(data[id]);
       }
-      button.appendChild(circle);
-    }
+    });
+    localStorage.setItem('mineplay_manga_bookmarks', JSON.stringify(bookmarksList));
+  }
 
-    function initRipples() {
-      document.querySelectorAll('.ripple-effect').forEach(btn => {
-        btn.removeEventListener('pointerdown', createRipple);
-        btn.addEventListener('pointerdown', createRipple);
-      });
-    }
+  function getSavedLanguage() {
+    return localStorage.getItem(TRANSLATE_STORAGE_KEY) || 'en';
+  }
 
-    function sanitizeKey(key) {
-      if (!key) return '';
-      return key.replace(/[.#$[\]]/g, "_");
-    }
+  function saveLanguagePreference(langCode) {
+    localStorage.setItem(TRANSLATE_STORAGE_KEY, langCode);
+  }
 
-    function executeGoBack() {
-      if (window.Android && typeof window.Android.goBack === 'function') {
-        window.Android.goBack();
-      } else if (window.android && typeof window.android.goBack === 'function') {
-        window.android.goBack();
+  function parseHashParams() {
+    const hash = window.location.hash.substring(1);
+    const params = {};
+    if (!hash) return params;
+
+    if (hash.startsWith('opsisave=')) {
+      params.opsisave = hash.replace('opsisave=', '');
+    } else if (hash.startsWith('char=')) {
+      params.char = hash.replace('char=', '');
+    } else if (hash === 'bahasa') {
+      params.bahasa = true;
+    }
+    return params;
+  }
+
+  function getMangaIdFromHash() {
+    const params = parseHashParams();
+    const rawId = params.opsisave;
+    const parsedId = parseInt(rawId, 10);
+    return isNaN(parsedId) ? null : parsedId;
+  }
+
+  function getCharIdFromHash() {
+    const params = parseHashParams();
+    const rawId = params.char;
+    const parsedId = parseInt(rawId, 10);
+    return isNaN(parsedId) ? null : parsedId;
+  }
+
+  function setOptionsDisabled(disabled) {
+    const grid = document.getElementById('mangaOptionsGrid');
+    if (!grid) return;
+    const items = grid.querySelectorAll('.option-bar-item');
+    items.forEach(item => {
+      if (disabled) {
+        item.classList.add('disabled');
       } else {
-        window.history.back();
+        item.classList.remove('disabled');
       }
-    }
+    });
+  }
 
-    function getUserStatusData(uid) {
-      try {
-        return JSON.parse(localStorage.getItem('mineplay_manga_status_' + uid) || '{}');
-      } catch (e) {
-        return {};
-      }
-    }
-
-    function saveUserStatusData(uid, data) {
-      localStorage.setItem('mineplay_manga_status_' + uid, JSON.stringify(data));
-      let bookmarksList = [];
-      Object.keys(data).forEach(id => {
-        if (data[id] && data[id].status && data[id].status !== 'REMOVE') {
-          bookmarksList.push(data[id]);
+  const ANILIST_QUERY = `
+    query ($id: Int) {
+      Media(id: $id, type: MANGA) {
+        id
+        bannerImage
+        coverImage {
+          extraLarge
+          large
         }
+        title {
+          english
+          romaji
+          native
+        }
+      }
+    }
+  `;
+
+  const ANILIST_CHAR_QUERY = `
+    query ($id: Int) {
+      Character(id: $id) {
+        id
+        name {
+          full
+          native
+          userPreferred
+        }
+        image {
+          large
+          medium
+        }
+        description(asHtml: false)
+        gender
+        age
+        dateOfBirth {
+          year
+          month
+          day
+        }
+        favourites
+        media(page: 1, perPage: 1) {
+          edges {
+            characterRole
+          }
+        }
+      }
+    }
+  `;
+
+  async function fetchMangaQuickDetail(mangaId) {
+    try {
+      const res = await fetch(ANILIST_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          query: ANILIST_QUERY,
+          variables: { id: mangaId }
+        })
       });
-      localStorage.setItem('mineplay_manga_bookmarks', JSON.stringify(bookmarksList));
+      const json = await res.json();
+      return json?.data?.Media || null;
+    } catch (e) {
+      return null;
     }
+  }
 
-    function getSavedLanguage() {
-      return localStorage.getItem(TRANSLATE_STORAGE_KEY) || 'en';
-    }
-
-    function saveLanguagePreference(langCode) {
-      localStorage.setItem(TRANSLATE_STORAGE_KEY, langCode);
-    }
-
-    function parseHashParams() {
-      const hash = window.location.hash.substring(1);
-      const params = {};
-      if (!hash) return params;
-
-      if (hash.startsWith('opsisave=')) {
-        params.opsisave = hash.replace('opsisave=', '');
-      } else if (hash.startsWith('char=')) {
-        params.char = hash.replace('char=', '');
-      } else if (hash === 'bahasa') {
-        params.bahasa = true;
-      }
-      return params;
-    }
-
-    function getMangaIdFromHash() {
-      const params = parseHashParams();
-      const rawId = params.opsisave;
-      const parsedId = parseInt(rawId, 10);
-      return isNaN(parsedId) ? null : parsedId;
-    }
-
-    function getCharIdFromHash() {
-      const params = parseHashParams();
-      const rawId = params.char;
-      const parsedId = parseInt(rawId, 10);
-      return isNaN(parsedId) ? null : parsedId;
-    }
-
-    function setOptionsDisabled(disabled) {
-      const grid = document.getElementById('mangaOptionsGrid');
-      if (!grid) return;
-      const items = grid.querySelectorAll('.option-bar-item');
-      items.forEach(item => {
-        if (disabled) {
-          item.classList.add('disabled');
-        } else {
-          item.classList.remove('disabled');
-        }
+  async function fetchCharacterDetail(charId) {
+    try {
+      const res = await fetch(ANILIST_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          query: ANILIST_CHAR_QUERY,
+          variables: { id: charId }
+        })
       });
+      const json = await res.json();
+      return json?.data?.Character || null;
+    } catch (e) {
+      return null;
     }
+  }
 
-    const ANILIST_QUERY = `
-      query ($id: Int) {
-        Media(id: $id, type: MANGA) {
-          id
-          bannerImage
-          coverImage {
-            extraLarge
-            large
-          }
-          title {
-            english
-            romaji
-            native
-          }
-        }
-      }
-    `;
-
-    const ANILIST_CHAR_QUERY = `
-      query ($id: Int) {
-        Character(id: $id) {
-          id
-          name {
-            full
-            native
-            userPreferred
-          }
-          image {
-            large
-            medium
-          }
-          description(asHtml: false)
-          gender
-          age
-          dateOfBirth {
-            year
-            month
-            day
-          }
-          favourites
-          media(page: 1, perPage: 1) {
-            edges {
-              characterRole
-            }
-          }
-        }
-      }
-    `;
-
-    async function fetchMangaQuickDetail(mangaId) {
-      try {
-        const res = await fetch(ANILIST_API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            query: ANILIST_QUERY,
-            variables: { id: mangaId }
-          })
-        });
-        const json = await res.json();
-        return json?.data?.Media || null;
-      } catch (e) {
-        return null;
-      }
-    }
-
-    async function fetchCharacterDetail(charId) {
-      try {
-        const res = await fetch(ANILIST_API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            query: ANILIST_CHAR_QUERY,
-            variables: { id: charId }
-          })
-        });
-        const json = await res.json();
-        return json?.data?.Character || null;
-      } catch (e) {
-        return null;
-      }
-    }
-
-    function updateFavUI(activeStatus) {
-      document.querySelectorAll('.option-circle[data-manga-status]').forEach(circle => {
-        const status = circle.getAttribute('data-manga-status');
-        const item = circle.closest('.option-bar-item');
-        if (status === activeStatus) {
-          item.classList.add('selected');
-        } else {
-          item.classList.remove('selected');
-        }
-      });
-    }
-
-    async function selectMangaStatus(statusValue) {
-      if (!currentUser) return;
-
-      const mangaId = getMangaIdFromHash();
-      if (!mangaId) return;
-
-      const userUid = currentUser.uid;
-      const cleanUser = sanitizeKey(userUid);
-      const saveRef = ref(db, `save_manga/${cleanUser}/${mangaId}`);
-      const userStatusData = getUserStatusData(userUid);
-
-      if (statusValue === 'REMOVE') {
-        delete userStatusData[mangaId];
-        updateFavUI(null);
-        try {
-          await remove(saveRef);
-        } catch (err) {}
+  function updateFavUI(activeStatus) {
+    document.querySelectorAll('.option-circle[data-manga-status]').forEach(circle => {
+      const status = circle.getAttribute('data-manga-status');
+      const item = circle.closest('.option-bar-item');
+      if (status === activeStatus) {
+        item.classList.add('selected');
       } else {
-        const coverElem = document.getElementById('syncMangaCover');
-
-        const dbDataObj = {
-          id: mangaId,
-          status: statusValue,
-          updatedAt: Date.now()
-        };
-
-        userStatusData[mangaId] = {
-          ...dbDataObj,
-          title: currentFetchedTitle || '',
-          poster: coverElem ? coverElem.src : ''
-        };
-
-        updateFavUI(statusValue);
-        try {
-          await set(saveRef, dbDataObj);
-        } catch (err) {}
+        item.classList.remove('selected');
       }
+    });
+  }
 
-      saveUserStatusData(userUid, userStatusData);
+  async function selectMangaStatus(statusValue) {
+    if (!currentUser) {
+      console.warn("Gagal simpan: User belum terautentikasi / belum login.");
+      return;
     }
 
-    function selectTranslateLanguage(langCode) {
-      saveLanguagePreference(langCode);
-      updateLangUI(langCode);
+    const mangaId = getMangaIdFromHash();
+    if (!mangaId) {
+      console.warn("Gagal simpan: Manga ID tidak ditemukan di URL hash.");
+      return;
     }
 
-    function updateLangUI(savedLang) {
-      document.querySelectorAll('.option-circle[data-lang-radio]').forEach(circle => {
-        const lang = circle.getAttribute('data-lang-radio');
-        const item = circle.closest('.option-bar-item');
-        if (lang === savedLang) {
-          item.classList.add('selected');
-        } else {
-          item.classList.remove('selected');
-        }
-      });
-    }
+    const userUid = currentUser.uid;
+    // PENTING: Gunakan UID langsung agar cocok dengan aturan Rules Firebase (auth.uid == $uid)
+    const saveRef = ref(db, `save_manga/${userUid}/${mangaId}`);
+    const userStatusData = getUserStatusData(userUid);
 
-    async function loadMangaSyncSection() {
-      const mangaId = getMangaIdFromHash();
-      const section = document.getElementById('mangaSyncSection');
-      const bannerContainer = document.getElementById('bannerContainer');
-      const bannerElem = document.getElementById('syncMangaBanner');
-      const coverContainer = document.getElementById('coverContainer');
-      const coverElem = document.getElementById('syncMangaCover');
-      const titleMain = document.getElementById('mangaTitleMain');
-      const titleSub = document.getElementById('mangaTitleSub');
-
-      if (!mangaId) {
-        if (section) section.style.display = 'flex';
-        if (bannerContainer) bannerContainer.classList.remove('skeleton');
-        if (coverContainer) coverContainer.classList.remove('skeleton');
-        setOptionsDisabled(true);
-        return;
-      }
-
-      if (section) section.style.display = 'flex';
-      setOptionsDisabled(!currentUser);
-
-      if (bannerContainer) bannerContainer.classList.add('skeleton');
-      if (coverContainer) coverContainer.classList.add('skeleton');
-      if (bannerElem) bannerElem.classList.remove('loaded');
-      if (coverElem) coverElem.classList.remove('loaded');
-      titleMain.innerText = 'Memuat...';
-      titleSub.innerText = '';
-
+    if (statusValue === 'REMOVE') {
+      delete userStatusData[mangaId];
       updateFavUI(null);
+      try {
+        await remove(saveRef);
+        console.log("Status berhasil dihapus dari Firebase Realtime Database!");
+      } catch (err) {
+        console.error("Firebase Remove Error:", err);
+      }
+    } else {
+      const coverElem = document.getElementById('syncMangaCover');
+
+      const dbDataObj = {
+        id: mangaId,
+        status: statusValue,
+        updatedAt: Date.now()
+      };
+
+      userStatusData[mangaId] = {
+        ...dbDataObj,
+        title: currentFetchedTitle || '',
+        poster: coverElem ? coverElem.src : ''
+      };
+
+      updateFavUI(statusValue);
+      try {
+        await set(saveRef, dbDataObj);
+        console.log("Status berhasil disimpan ke Firebase Realtime Database!");
+      } catch (err) {
+        console.error("Firebase Set Error:", err);
+      }
+    }
+
+    saveUserStatusData(userUid, userStatusData);
+  }
+
+  function selectTranslateLanguage(langCode) {
+    saveLanguagePreference(langCode);
+    updateLangUI(langCode);
+  }
+
+  function updateLangUI(savedLang) {
+    document.querySelectorAll('.option-circle[data-lang-radio]').forEach(circle => {
+      const lang = circle.getAttribute('data-lang-radio');
+      const item = circle.closest('.option-bar-item');
+      if (lang === savedLang) {
+        item.classList.add('selected');
+      } else {
+        item.classList.remove('selected');
+      }
+    });
+  }
+
+  async function loadMangaSyncSection() {
+    const mangaId = getMangaIdFromHash();
+    const section = document.getElementById('mangaSyncSection');
+    const bannerContainer = document.getElementById('bannerContainer');
+    const bannerElem = document.getElementById('syncMangaBanner');
+    const coverContainer = document.getElementById('coverContainer');
+    const coverElem = document.getElementById('syncMangaCover');
+    const titleMain = document.getElementById('mangaTitleMain');
+    const titleSub = document.getElementById('mangaTitleSub');
+
+    if (!mangaId) {
+      if (section) section.style.display = 'flex';
+      if (bannerContainer) bannerContainer.classList.remove('skeleton');
+      if (coverContainer) coverContainer.classList.remove('skeleton');
+      setOptionsDisabled(true);
+      return;
+    }
+
+    if (section) section.style.display = 'flex';
+    setOptionsDisabled(!currentUser);
+
+    if (bannerContainer) bannerContainer.classList.add('skeleton');
+    if (coverContainer) coverContainer.classList.add('skeleton');
+    if (bannerElem) bannerElem.classList.remove('loaded');
+    if (coverElem) coverElem.classList.remove('loaded');
+    titleMain.innerText = 'Memuat...';
+    titleSub.innerText = '';
+
+    updateFavUI(null);
+
+    if (currentUser) {
+      const userUid = currentUser.uid;
+      const userStatusData = getUserStatusData(userUid);
+      if (userStatusData[mangaId] && userStatusData[mangaId].status) {
+        updateFavUI(userStatusData[mangaId].status);
+      }
+
+      const saveRef = ref(db, `save_manga/${userUid}/${mangaId}`);
+      get(saveRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (data && data.status) {
+            updateFavUI(data.status);
+            userStatusData[mangaId] = {
+              ...userStatusData[mangaId],
+              ...data
+            };
+            saveUserStatusData(userUid, userStatusData);
+          }
+        } else {
+          if (userStatusData[mangaId]) {
+            delete userStatusData[mangaId];
+            saveUserStatusData(userUid, userStatusData);
+          }
+          updateFavUI(null);
+        }
+      }).catch((err) => {
+        console.error("Firebase Get Error:", err);
+      });
+    }
+
+    const mangaData = await fetchMangaQuickDetail(mangaId);
+    if (mangaData) {
+      currentFetchedTitle = mangaData.title.english || mangaData.title.romaji || mangaData.title.native || '';
+      
+      titleMain.innerText = mangaData.title.english || mangaData.title.romaji || '';
+      titleSub.innerText = mangaData.title.native || mangaData.title.romaji || '';
+
+      const bannerSrc = mangaData.bannerImage || mangaData.coverImage?.extraLarge || mangaData.coverImage?.large || '';
+      const coverSrc = mangaData.coverImage?.extraLarge || mangaData.coverImage?.large || '';
+
+      if (bannerElem && bannerSrc) {
+        const bannerLoader = new Image();
+        bannerLoader.src = bannerSrc;
+        bannerLoader.onload = () => {
+          bannerElem.src = bannerSrc;
+          if (bannerContainer) bannerContainer.classList.remove('skeleton');
+          bannerElem.classList.add('loaded');
+        };
+        bannerLoader.onerror = () => {
+          if (bannerContainer) bannerContainer.classList.remove('skeleton');
+        };
+      } else if (bannerContainer) {
+        bannerContainer.classList.remove('skeleton');
+      }
+
+      if (coverElem && coverSrc) {
+        const coverLoader = new Image();
+        coverLoader.src = coverSrc;
+        coverLoader.onload = () => {
+          coverElem.src = coverSrc;
+          if (coverContainer) coverContainer.classList.remove('skeleton');
+          coverElem.classList.add('loaded');
+        };
+        coverLoader.onerror = () => {
+          if (coverContainer) coverContainer.classList.remove('skeleton');
+        };
+      } else if (coverContainer) {
+        coverContainer.classList.remove('skeleton');
+      }
 
       if (currentUser) {
         const userUid = currentUser.uid;
         const userStatusData = getUserStatusData(userUid);
-        if (userStatusData[mangaId] && userStatusData[mangaId].status) {
-          updateFavUI(userStatusData[mangaId].status);
+        if (userStatusData[mangaId]) {
+          userStatusData[mangaId].title = currentFetchedTitle;
+          userStatusData[mangaId].poster = coverSrc || bannerSrc;
+          saveUserStatusData(userUid, userStatusData);
         }
-
-        const cleanUser = sanitizeKey(userUid);
-        const saveRef = ref(db, `save_manga/${cleanUser}/${mangaId}`);
-        get(saveRef).then((snapshot) => {
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            if (data && data.status) {
-              updateFavUI(data.status);
-              userStatusData[mangaId] = {
-                ...userStatusData[mangaId],
-                ...data
-              };
-              saveUserStatusData(userUid, userStatusData);
-            }
-          } else {
-            if (userStatusData[mangaId]) {
-              delete userStatusData[mangaId];
-              saveUserStatusData(userUid, userStatusData);
-            }
-            updateFavUI(null);
-          }
-        }).catch(() => {});
       }
-
-      const mangaData = await fetchMangaQuickDetail(mangaId);
-      if (mangaData) {
-        currentFetchedTitle = mangaData.title.english || mangaData.title.romaji || mangaData.title.native || '';
-        
-        titleMain.innerText = mangaData.title.english || mangaData.title.romaji || '';
-        titleSub.innerText = mangaData.title.native || mangaData.title.romaji || '';
-
-        const bannerSrc = mangaData.bannerImage || mangaData.coverImage?.extraLarge || mangaData.coverImage?.large || '';
-        const coverSrc = mangaData.coverImage?.extraLarge || mangaData.coverImage?.large || '';
-
-        if (bannerElem && bannerSrc) {
-          const bannerLoader = new Image();
-          bannerLoader.src = bannerSrc;
-          bannerLoader.onload = () => {
-            bannerElem.src = bannerSrc;
-            if (bannerContainer) bannerContainer.classList.remove('skeleton');
-            bannerElem.classList.add('loaded');
-          };
-          bannerLoader.onerror = () => {
-            if (bannerContainer) bannerContainer.classList.remove('skeleton');
-          };
-        } else if (bannerContainer) {
-          bannerContainer.classList.remove('skeleton');
-        }
-
-        if (coverElem && coverSrc) {
-          const coverLoader = new Image();
-          coverLoader.src = coverSrc;
-          coverLoader.onload = () => {
-            coverElem.src = coverSrc;
-            if (coverContainer) coverContainer.classList.remove('skeleton');
-            coverElem.classList.add('loaded');
-          };
-          coverLoader.onerror = () => {
-            if (coverContainer) coverContainer.classList.remove('skeleton');
-          };
-        } else if (coverContainer) {
-          coverContainer.classList.remove('skeleton');
-        }
-
-        if (currentUser) {
-          const userUid = currentUser.uid;
-          const userStatusData = getUserStatusData(userUid);
-          if (userStatusData[mangaId]) {
-            userStatusData[mangaId].title = currentFetchedTitle;
-            userStatusData[mangaId].poster = coverSrc || bannerSrc;
-            saveUserStatusData(userUid, userStatusData);
-          }
-        }
-      } else {
-        if (bannerContainer) bannerContainer.classList.remove('skeleton');
-        if (coverContainer) coverContainer.classList.remove('skeleton');
-        titleMain.innerText = 'Manga tidak ditemukan';
-        titleSub.innerText = '';
-        setOptionsDisabled(true);
-      }
+    } else {
+      if (bannerContainer) bannerContainer.classList.remove('skeleton');
+      if (coverContainer) coverContainer.classList.remove('skeleton');
+      titleMain.innerText = 'Manga tidak ditemukan';
+      titleSub.innerText = '';
+      setOptionsDisabled(true);
     }
+  }
 
-    async function loadCharacterSection() {
-      const charId = getCharIdFromHash();
-      const section = document.getElementById('characterSection');
-      const coverContainer = document.getElementById('charCoverContainer');
-      const coverImg = document.getElementById('charCoverImg');
-      const namePrimary = document.getElementById('charNamePrimary');
-      const nameNative = document.getElementById('charNameNative');
-      const ageBadge = document.getElementById('charAgeBadge');
-      const genderBadge = document.getElementById('charGenderBadge');
-      const dobBadge = document.getElementById('charDobBadge');
-      const roleBadge = document.getElementById('charRoleBadge');
-      const favsBadge = document.getElementById('charFavsBadge');
-      const descElem = document.getElementById('charDescription');
+  async function loadCharacterSection() {
+    const charId = getCharIdFromHash();
+    const section = document.getElementById('characterSection');
+    const coverContainer = document.getElementById('charCoverContainer');
+    const coverImg = document.getElementById('charCoverImg');
+    const namePrimary = document.getElementById('charNamePrimary');
+    const nameNative = document.getElementById('charNameNative');
+    const ageBadge = document.getElementById('charAgeBadge');
+    const genderBadge = document.getElementById('charGenderBadge');
+    const dobBadge = document.getElementById('charDobBadge');
+    const roleBadge = document.getElementById('charRoleBadge');
+    const favsBadge = document.getElementById('charFavsBadge');
+    const descElem = document.getElementById('charDescription');
 
-      if (!charId) {
-        if (section) section.style.display = 'flex';
-        return;
-      }
-
+    if (!charId) {
       if (section) section.style.display = 'flex';
-      if (coverContainer) coverContainer.classList.add('skeleton');
-      if (coverImg) coverImg.classList.remove('loaded');
-      
-      namePrimary.innerText = 'Memuat...';
-      nameNative.innerText = '';
-      ageBadge.style.display = 'none';
-      genderBadge.style.display = 'none';
-      dobBadge.style.display = 'none';
-      roleBadge.style.display = 'none';
-      favsBadge.style.display = 'none';
-      descElem.innerText = 'Memuat deskripsi...';
-
-      const charData = await fetchCharacterDetail(charId);
-
-      if (charData) {
-        namePrimary.innerText = charData.name?.userPreferred || charData.name?.full || 'Unknown';
-        nameNative.innerText = charData.name?.native || '';
-
-        if (charData.age) {
-          ageBadge.innerText = `Umur: ${charData.age}`;
-          ageBadge.style.display = 'inline-flex';
-        }
-
-        if (charData.gender) {
-          genderBadge.innerText = charData.gender;
-          genderBadge.style.display = 'inline-flex';
-        }
-
-        if (charData.dateOfBirth && (charData.dateOfBirth.month || charData.dateOfBirth.day)) {
-          const dobText = [charData.dateOfBirth.day, charData.dateOfBirth.month, charData.dateOfBirth.year].filter(Boolean).join('/');
-          dobBadge.innerText = `Lahir: ${dobText}`;
-          dobBadge.style.display = 'inline-flex';
-        }
-
-        if (charData.media?.edges?.[0]?.characterRole) {
-          roleBadge.innerText = `Role: ${charData.media.edges[0].characterRole}`;
-          roleBadge.style.display = 'inline-flex';
-        }
-
-        if (typeof charData.favourites === 'number') {
-          favsBadge.innerText = `Like ${charData.favourites.toLocaleString()}`;
-          favsBadge.style.display = 'inline-flex';
-        }
-
-        const cleanDesc = charData.description ? charData.description.replace(/~!|!~/g, '').replace(/<br\s*\/?>/gi, '\n') : 'Tidak ada deskripsi tersedia.';
-        descElem.innerText = cleanDesc;
-
-        const imgSrc = charData.image?.large || charData.image?.medium || '';
-        if (coverImg && imgSrc) {
-          const imgLoader = new Image();
-          imgLoader.src = imgSrc;
-          imgLoader.onload = () => {
-            coverImg.src = imgSrc;
-            if (coverContainer) coverContainer.classList.remove('skeleton');
-            coverImg.classList.add('loaded');
-          };
-          imgLoader.onerror = () => {
-            if (coverContainer) coverContainer.classList.remove('skeleton');
-          };
-        } else if (coverContainer) {
-          coverContainer.classList.remove('skeleton');
-        }
-      } else {
-        if (coverContainer) coverContainer.classList.remove('skeleton');
-        namePrimary.innerText = 'Karakter tidak ditemukan';
-        descElem.innerText = '-';
-      }
+      return;
     }
 
-    function handleRouteView() {
-      const hashParams = parseHashParams();
-      const mangaSection = document.getElementById('mangaSyncSection');
-      const langSection = document.getElementById('languageSection');
-      const charSection = document.getElementById('characterSection');
-      const navTitle = document.getElementById('navTitle');
+    if (section) section.style.display = 'flex';
+    if (coverContainer) coverContainer.classList.add('skeleton');
+    if (coverImg) coverImg.classList.remove('loaded');
+    
+    namePrimary.innerText = 'Memuat...';
+    nameNative.innerText = '';
+    ageBadge.style.display = 'none';
+    genderBadge.style.display = 'none';
+    dobBadge.style.display = 'none';
+    roleBadge.style.display = 'none';
+    favsBadge.style.display = 'none';
+    descElem.innerText = 'Memuat deskripsi...';
 
-      mangaSection.style.display = 'none';
-      langSection.style.display = 'none';
-      charSection.style.display = 'none';
+    const charData = await fetchCharacterDetail(charId);
 
-      if (hashParams.opsisave) {
-        navTitle.innerText = 'Status Bookmark';
-        mangaSection.style.display = 'flex';
+    if (charData) {
+      namePrimary.innerText = charData.name?.userPreferred || charData.name?.full || 'Unknown';
+      nameNative.innerText = charData.name?.native || '';
+
+      if (charData.age) {
+        ageBadge.innerText = `Umur: ${charData.age}`;
+        ageBadge.style.display = 'inline-flex';
+      }
+
+      if (charData.gender) {
+        genderBadge.innerText = charData.gender;
+        genderBadge.style.display = 'inline-flex';
+      }
+
+      if (charData.dateOfBirth && (charData.dateOfBirth.month || charData.dateOfBirth.day)) {
+        const dobText = [charData.dateOfBirth.day, charData.dateOfBirth.month, charData.dateOfBirth.year].filter(Boolean).join('/');
+        dobBadge.innerText = `Lahir: ${dobText}`;
+        dobBadge.style.display = 'inline-flex';
+      }
+
+      if (charData.media?.edges?.[0]?.characterRole) {
+        roleBadge.innerText = `Role: ${charData.media.edges[0].characterRole}`;
+        roleBadge.style.display = 'inline-flex';
+      }
+
+      if (typeof charData.favourites === 'number') {
+        favsBadge.innerText = `Like ${charData.favourites.toLocaleString()}`;
+        favsBadge.style.display = 'inline-flex';
+      }
+
+      const cleanDesc = charData.description ? charData.description.replace(/~!|!~/g, '').replace(/<br\s*\/?>/gi, '\n') : 'Tidak ada deskripsi tersedia.';
+      descElem.innerText = cleanDesc;
+
+      const imgSrc = charData.image?.large || charData.image?.medium || '';
+      if (coverImg && imgSrc) {
+        const imgLoader = new Image();
+        imgLoader.src = imgSrc;
+        imgLoader.onload = () => {
+          coverImg.src = imgSrc;
+          if (coverContainer) coverContainer.classList.remove('skeleton');
+          coverImg.classList.add('loaded');
+        };
+        imgLoader.onerror = () => {
+          if (coverContainer) coverContainer.classList.remove('skeleton');
+        };
+      } else if (coverContainer) {
+        coverContainer.classList.remove('skeleton');
+      }
+    } else {
+      if (coverContainer) coverContainer.classList.remove('skeleton');
+      namePrimary.innerText = 'Karakter tidak ditemukan';
+      descElem.innerText = '-';
+    }
+  }
+
+  function handleRouteView() {
+    const hashParams = parseHashParams();
+    const mangaSection = document.getElementById('mangaSyncSection');
+    const langSection = document.getElementById('languageSection');
+    const charSection = document.getElementById('characterSection');
+    const navTitle = document.getElementById('navTitle');
+
+    mangaSection.style.display = 'none';
+    langSection.style.display = 'none';
+    charSection.style.display = 'none';
+
+    if (hashParams.opsisave) {
+      navTitle.innerText = 'Status Bookmark';
+      mangaSection.style.display = 'flex';
+      loadMangaSyncSection();
+    } else if (hashParams.char) {
+      navTitle.innerText = 'Detail Karakter';
+      charSection.style.display = 'flex';
+      loadCharacterSection();
+    } else if (hashParams.bahasa) {
+      navTitle.innerText = 'Bahasa Terjemahan';
+      langSection.style.display = 'flex';
+      updateLangUI(getSavedLanguage());
+    } else {
+      navTitle.innerText = 'Pengaturan';
+      langSection.style.display = 'flex';
+      updateLangUI(getSavedLanguage());
+    }
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    console.log("Auth State Changed - Current User:", user ? user.uid : "Belum Login");
+    const hashParams = parseHashParams();
+    if (hashParams.opsisave) {
+      setOptionsDisabled(!currentUser);
+      if (currentUser) {
         loadMangaSyncSection();
-      } else if (hashParams.char) {
-        navTitle.innerText = 'Detail Karakter';
-        charSection.style.display = 'flex';
-        loadCharacterSection();
-      } else if (hashParams.bahasa) {
-        navTitle.innerText = 'Bahasa Terjemahan';
-        langSection.style.display = 'flex';
-        updateLangUI(getSavedLanguage());
-      } else {
-        navTitle.innerText = 'Pengaturan';
-        langSection.style.display = 'flex';
-        updateLangUI(getSavedLanguage());
       }
     }
+  });
 
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
-      const hashParams = parseHashParams();
-      if (hashParams.opsisave) {
-        setOptionsDisabled(!currentUser);
-        if (currentUser) {
-          loadMangaSyncSection();
-        }
-      }
-    });
+  window.addEventListener('hashchange', () => {
+    handleRouteView();
+  });
 
-    window.selectMangaStatus = selectMangaStatus;
-    window.selectTranslateLanguage = selectTranslateLanguage;
-    window.executeGoBack = executeGoBack;
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('backBtn').addEventListener('click', executeGoBack);
+    handleRouteView();
+    initRipples();
+  });
+</script>
 
-    window.addEventListener('hashchange', () => {
-      handleRouteView();
-    });
-
-    window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('backBtn').addEventListener('click', executeGoBack);
-      handleRouteView();
-      initRipples();
-    });
-  </script>
 </body>
 </html>
