@@ -574,22 +574,34 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getAuth, 
+      setPersistence, 
+      indexedDBLocalPersistence, 
+      browserLocalPersistence, 
+      onAuthStateChanged, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCfCDgff5nwMYCx1EBDJEoJ8gzxKQ9Y__U",
-      authDomain: "my-mineplix.firebaseapp.com",
-      databaseURL: "https://my-mineplix-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "my-mineplix",
-      storageBucket: "my-mineplix.firebasestorage.app",
-      messagingSenderId: "141905130988",
-      appId: "1:141905130988:web:89e524e1dc577642e8bcc9",
-      measurementId: "G-B92GJ77NPF"
+      apiKey: "AIzaSyCUIU56gmsBa--tSQCS3qvXV6-cAC537rA",
+      authDomain: "mineread-2d3b4.firebaseapp.com",
+      databaseURL: "https://mineread-2d3b4-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "mineread-2d3b4",
+      storageBucket: "mineread-2d3b4.firebasestorage.app",
+      messagingSenderId: "327279446968",
+      appId: "1:327279446968:web:fef4fca38241e7c3899d4d",
+      measurementId: "G-WZEJ797GRS"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
+
+    // Paksa Firebase Auth menyimpan sesi di browser Local Storage / IndexedDB
+    setPersistence(auth, indexedDBLocalPersistence).catch(() => {
+      setPersistence(auth, browserLocalPersistence);
+    });
 
     const ANILIST_API_URL = 'https://graphql.anilist.co';
     let isLoggedIn = false;
@@ -952,6 +964,10 @@
         });
 
         renderBookmarks();
+      }, (error) => {
+        console.error("Gagal mengambil data bookmark:", error);
+        allBookmarks = [];
+        renderBookmarks();
       });
     }
 
@@ -1026,6 +1042,9 @@
         }
 
         processAndRender(mergedMap);
+      }, (error) => {
+        console.error("Gagal mengambil histori:", error);
+        processAndRender(localHistoryMap);
       });
     }
 
@@ -1063,6 +1082,7 @@
       loadAndListenUserHistory(null);
     }
 
+    // Mendengarkan perubahan status login
     onAuthStateChanged(auth, (user) => {
       detachListeners();
       if (user) {
@@ -1071,6 +1091,15 @@
         loadAndListenUserHistory(user.uid);
       } else {
         renderGuestData();
+      }
+    });
+
+    // Menangani kembali ke halaman ketika halaman berada di background WebView
+    window.addEventListener('pageshow', (event) => {
+      if (auth.currentUser) {
+        renderUserData(auth.currentUser);
+        if (!unsubscribeBookmark) listenToUserBookmarks(auth.currentUser.uid);
+        if (!unsubscribeHistory) loadAndListenUserHistory(auth.currentUser.uid);
       }
     });
 
