@@ -604,6 +604,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, set, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -618,12 +619,14 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getDatabase(app);
 
     const ANILIST_API_URL = 'https://graphql.anilist.co';
     const TRANSLATE_STORAGE_KEY = 'mineplay_lang_pref';
 
     let currentFetchedTitle = '';
+    let currentUser = null;
 
     function createRipple(event) {
       const button = event.currentTarget;
@@ -653,7 +656,7 @@
 
     function sanitizeKey(key) {
       if (!key) return '';
-      return String(key).replace(/[.#$[\]]/g, "_");
+      return key.replace(/[.#$[\]]/g, "_");
     }
 
     function executeGoBack() {
@@ -666,43 +669,16 @@
       }
     }
 
-    // Deteksi User UUID dari latar belakang (Login/Storage)
-    function getLoggedInUserUuid() {
-      let uuid = localStorage.getItem('account:uuid') || 
-                 localStorage.getItem('account:uid') || 
-                 localStorage.getItem('user_id') || 
-                 localStorage.getItem('uuid');
-
-      // Fallback: Apabila user login via username/email lama, periksa uuid cadangan
-      if (!uuid) {
-        const username = localStorage.getItem('account:username') || localStorage.getItem('account:email');
-        if (username) {
-          uuid = 'usr_' + sanitizeKey(username);
-        }
-      }
-
-      // Generasi ID Unik Anonim Sementara jika tidak ada sesi login latar belakang
-      if (!uuid) {
-        uuid = localStorage.getItem('mineplay_anon_uuid');
-        if (!uuid) {
-          uuid = 'anon_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-          localStorage.setItem('mineplay_anon_uuid', uuid);
-        }
-      }
-
-      return sanitizeKey(uuid);
-    }
-
-    function getUserStatusData(userUuid) {
+    function getUserStatusData(uid) {
       try {
-        return JSON.parse(localStorage.getItem('mineplay_manga_status_' + userUuid) || '{}');
+        return JSON.parse(localStorage.getItem('mineplay_manga_status_' + uid) || '{}');
       } catch (e) {
         return {};
       }
     }
 
-    function saveUserStatusData(userUuid, data) {
-      localStorage.setItem('mineplay_manga_status_' + userUuid, JSON.stringify(data));
+    function saveUserStatusData(uid, data) {
+      localStorage.setItem('mineplay_manga_status_' + uid, JSON.stringify(data));
       let bookmarksList = [];
       Object.keys(data).forEach(id => {
         if (data[id] && data[id].status && data[id].status !== 'REMOVE') {
@@ -864,23 +840,22 @@
     }
 
     async function selectMangaStatus(statusValue) {
-      const userUuid = getLoggedInUserUuid();
-      if (!userUuid) return;
+      if (!currentUser) return;
 
       const mangaId = getMangaIdFromHash();
       if (!mangaId) return;
 
-      const saveRef = ref(db, `save_manga/${userUuid}/${mangaId}`);
-      const userStatusData = getUserStatusData(userUuid);
+      const userUid = currentUser.uid;
+      const cleanUser = sanitizeKey(userUid);
+      const saveRef = ref(db, `save_manga/${cleanUser}/${mangaId}`);
+      const userStatusData = getUserStatusData(userUid);
 
       if (statusValue === 'REMOVE') {
         delete userStatusData[mangaId];
         updateFavUI(null);
         try {
           await remove(saveRef);
-        } catch (err) {
-          console.error(err);
-        }
+        } catch (err) {}
       } else {
         const coverElem = document.getElementById('syncMangaCover');
 
@@ -899,12 +874,10 @@
         updateFavUI(statusValue);
         try {
           await set(saveRef, dbDataObj);
-        } catch (err) {
-          console.error(err);
-        }
+        } catch (err) {}
       }
 
-      saveUserStatusData(userUuid, userStatusData);
+      saveUserStatusData(userUid, userStatusData);
     }
 
     function selectTranslateLanguage(langCode) {
@@ -943,7 +916,7 @@
       }
 
       if (section) section.style.display = 'flex';
-      setOptionsDisabled(false);
+      setOptionsDisabled(!currentUser);
 
       if (bannerContainer) bannerContainer.classList.add('skeleton');
       if (coverContainer) coverContainer.classList.add('skeleton');
@@ -954,14 +927,15 @@
 
       updateFavUI(null);
 
-      const userUuid = getLoggedInUserUuid();
-      if (userUuid) {
-        const userStatusData = getUserStatusData(userUuid);
+      if (currentUser) {
+        const userUid = currentUser.uid;
+        const userStatusData = getUserStatusData(userUid);
         if (userStatusData[mangaId] && userStatusData[mangaId].status) {
           updateFavUI(userStatusData[mangaId].status);
         }
 
-        const saveRef = ref(db, `save_manga/${userUuid}/${mangaId}`);
+        const cleanUser = sanitizeKey(userUid);
+        const saveRef = ref(db, `save_manga/${cleanUser}/${mangaId}`);
         get(saveRef).then((snapshot) => {
           if (snapshot.exists()) {
             const data = snapshot.val();
@@ -971,18 +945,16 @@
                 ...userStatusData[mangaId],
                 ...data
               };
-              saveUserStatusData(userUuid, userStatusData);
+              saveUserStatusData(userUid, userStatusData);
             }
           } else {
             if (userStatusData[mangaId]) {
               delete userStatusData[mangaId];
-              saveUserStatusData(userUuid, userStatusData);
+              saveUserStatusData(userUid, userStatusData);
             }
             updateFavUI(null);
           }
-        }).catch((err) => {
-          console.error(err);
-        });
+        }).catch(() => {});
       }
 
       const mangaData = await fetchMangaQuickDetail(mangaId);
@@ -1025,12 +997,13 @@
           coverContainer.classList.remove('skeleton');
         }
 
-        if (userUuid) {
-          const userStatusData = getUserStatusData(userUuid);
+        if (currentUser) {
+          const userUid = currentUser.uid;
+          const userStatusData = getUserStatusData(userUid);
           if (userStatusData[mangaId]) {
             userStatusData[mangaId].title = currentFetchedTitle;
             userStatusData[mangaId].poster = coverSrc || bannerSrc;
-            saveUserStatusData(userUuid, userStatusData);
+            saveUserStatusData(userUid, userStatusData);
           }
         }
       } else {
@@ -1160,6 +1133,17 @@
         updateLangUI(getSavedLanguage());
       }
     }
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      const hashParams = parseHashParams();
+      if (hashParams.opsisave) {
+        setOptionsDisabled(!currentUser);
+        if (currentUser) {
+          loadMangaSyncSection();
+        }
+      }
+    });
 
     window.selectMangaStatus = selectMangaStatus;
     window.selectTranslateLanguage = selectTranslateLanguage;
