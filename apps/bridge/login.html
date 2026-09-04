@@ -308,9 +308,60 @@
     }
 
     .recaptcha-wrapper {
+      width: 100%;
       display: flex;
       justify-content: center;
+      align-items: center;
       margin-bottom: 16px;
+      border-radius: 12px;
+      padding: 4px;
+      transition: border-color 0.2s ease;
+    }
+
+    .recaptcha-wrapper.recaptcha-error {
+      border: 2px solid var(--md-sys-color-error);
+    }
+
+    .g-recaptcha {
+      transform-origin: center top;
+      -webkit-transform-origin: center top;
+      display: inline-block;
+    }
+
+    .forgot-pass-link {
+      display: block;
+      text-align: right;
+      font-size: 12px;
+      color: var(--md-sys-color-primary);
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      padding-right: 8px;
+      cursor: pointer;
+    }
+
+    .forgot-pass-link:hover {
+      text-decoration: underline;
+    }
+
+    .forgot-pass-link.hidden {
+      display: none;
+    }
+
+    .reset-msg {
+      display: none;
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--md-sys-color-primary);
+      text-align: right;
+      padding-right: 8px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+
+    .reset-msg.show {
+      display: block;
     }
 
     .privacy-group {
@@ -558,6 +609,8 @@
             <div class="form-group">
               <label class="form-label">Password</label>
               <input type="password" id="loginPassword" class="form-input" placeholder="Masukkan password" data-original-placeholder="Masukkan password" oninput="resetFieldError(this)">
+              <a href="#" id="forgotPassLink" class="forgot-pass-link" onclick="handleForgotPassword(event)">Lupa Password?</a>
+              <div class="reset-msg" id="resetMsg">Cek email Anda untuk mengganti password, cek spam email jika tidak ada di semua email. (30s)</div>
             </div>
 
             <div class="form-group">
@@ -640,7 +693,8 @@
       signInWithPopup, 
       GoogleAuthProvider, 
       signOut, 
-      onAuthStateChanged 
+      onAuthStateChanged,
+      sendPasswordResetEmail
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -657,6 +711,32 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
+
+    let resetTimer = null;
+
+    function rescaleCaptchas() {
+      const wrappers = document.querySelectorAll('.recaptcha-wrapper');
+      wrappers.forEach(wrapper => {
+        const captchaEl = wrapper.querySelector('.g-recaptcha');
+        if (captchaEl) {
+          const wrapperWidth = wrapper.offsetWidth;
+          const standardWidth = 304;
+          if (wrapperWidth < standardWidth && wrapperWidth > 0) {
+            const scale = wrapperWidth / standardWidth;
+            captchaEl.style.transform = `scale(${scale})`;
+            captchaEl.style.webkitTransform = `scale(${scale})`;
+            wrapper.style.height = `${Math.round(78 * scale)}px`;
+          } else {
+            captchaEl.style.transform = 'scale(1)';
+            captchaEl.style.webkitTransform = 'scale(1)';
+            wrapper.style.height = 'auto';
+          }
+        }
+      });
+    }
+
+    window.addEventListener('resize', rescaleCaptchas);
+    window.addEventListener('load', rescaleCaptchas);
 
     function isValidEmail(email) {
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -753,6 +833,7 @@
         void registerForm.offsetWidth;
         registerForm.classList.add('fade-in');
       }
+      setTimeout(rescaleCaptchas, 50);
     };
 
     onAuthStateChanged(auth, (user) => {
@@ -767,8 +848,58 @@
       } else {
         authForms.style.display = 'block';
         loggedInBox.style.display = 'none';
+        setTimeout(rescaleCaptchas, 50);
       }
     });
+
+    window.handleForgotPassword = async function(e) {
+      e.preventDefault();
+      resetAllErrors();
+
+      const emailInput = document.getElementById('loginEmail').value.trim();
+      const resetMsg = document.getElementById('resetMsg');
+      const forgotLink = document.getElementById('forgotPassLink');
+
+      if (!emailInput) {
+        setFieldError('loginEmail', 'Isi email untuk reset password!');
+        return;
+      }
+
+      if (!isValidEmail(emailInput)) {
+        setFieldError('loginEmail', 'Format email tidak valid!');
+        return;
+      }
+
+      try {
+        await sendPasswordResetEmail(auth, emailInput);
+        
+        if (resetTimer) clearInterval(resetTimer);
+        
+        forgotLink.classList.add('hidden');
+        resetMsg.classList.add('show');
+        
+        let timeLeft = 30;
+        resetMsg.innerText = `Cek email Anda untuk mengganti password, cek spam email jika tidak ada di semua email, pastikan email anda benar. (${timeLeft}s)`;
+
+        resetTimer = setInterval(() => {
+          timeLeft--;
+          if (timeLeft > 0) {
+            resetMsg.innerText = `Cek email Anda untuk mengganti password, cek spam email jika tidak ada di semua email, pastikan email anda benar (${timeLeft}s)`;
+          } else {
+            clearInterval(resetTimer);
+            resetMsg.classList.remove('show');
+            forgotLink.classList.remove('hidden');
+          }
+        }, 1000);
+
+      } catch (err) {
+        if (err.code === 'auth/user-not-found') {
+          setFieldError('loginEmail', 'Email tidak terdaftar!');
+        } else {
+          setFieldError('loginEmail', 'Gagal mengirim email reset.');
+        }
+      }
+    };
 
     window.handleLogin = async function(e) {
       e.preventDefault();
