@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Mineplay - Profil & Autentikasi</title>
   
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
   <style>
     @font-face {
       font-family: 'Plus Jakarta Sans';
@@ -127,29 +129,6 @@
 
     .info-wrapper {
       position: relative;
-    }
-
-    .info-btn {
-      width: 34px;
-      height: 34px;
-      background-color: transparent;
-      color: var(--md-sys-color-on-surface);
-      border: none;
-      outline: none;
-      font-family: inherit;
-      font-size: 18px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.15s ease, opacity 0.2s ease;
-      padding: 0;
-    }
-
-    .info-btn:active {
-      transform: scale(0.9);
-      opacity: 0.7;
     }
 
     .info-tooltip {
@@ -312,7 +291,7 @@
       font-size: 14px;
       color: var(--md-sys-color-on-surface);
       outline: none;
-      transition: background-color 0.2s ease, transform 0.1s ease;
+      transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
     }
 
     .form-input:focus {
@@ -320,26 +299,25 @@
       outline: none;
     }
 
-    .captcha-box {
-      display: flex;
-      gap: 10px;
-      align-items: center;
+    .form-input.input-error {
+      border: 2px solid var(--md-sys-color-error);
     }
 
-    .captcha-question {
-      background-color: var(--md-sys-color-surface-variant);
-      color: var(--md-sys-color-primary);
-      border: none;
-      font-weight: 700;
-      font-size: 14px;
-      padding: 0 16px;
-      height: 48px;
-      border-radius: var(--md-shape-full);
+    .form-input.input-error::placeholder {
+      color: var(--md-sys-color-error);
+    }
+
+    .recaptcha-wrapper {
       display: flex;
-      align-items: center;
       justify-content: center;
-      white-space: nowrap;
-      min-width: 100px;
+      margin-bottom: 16px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .recaptcha-error {
+      outline: 2px solid var(--md-sys-color-error);
+      border-radius: 4px;
     }
 
     .privacy-group {
@@ -417,6 +395,12 @@
       font-size: 12px;
       color: var(--md-sys-color-on-surface-variant);
       line-height: 1.4;
+      transition: color 0.2s ease;
+    }
+
+    .privacy-label.label-error {
+      color: var(--md-sys-color-error);
+      font-weight: 700;
     }
 
     .privacy-label a {
@@ -478,43 +462,6 @@
     .google-btn svg {
       width: 20px;
       height: 20px;
-    }
-
-    .field-tooltip {
-      position: absolute;
-      bottom: calc(100% + 8px);
-      left: 16px;
-      background-color: var(--md-sys-color-error);
-      color: #600004;
-      padding: 6px 12px;
-      border-radius: 18px;
-      font-size: 11px;
-      font-weight: 700;
-      z-index: 99;
-      pointer-events: none;
-      opacity: 0;
-      transform: translateY(6px) scale(0.95);
-      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-
-    .field-tooltip::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 16px;
-      border-width: 5px;
-      border-style: solid;
-      border-color: var(--md-sys-color-error) transparent transparent transparent;
-    }
-
-    .field-tooltip.show {
-      opacity: 1;
-      transform: translateY(0) scale(1);
     }
 
     .logged-in-box {
@@ -590,7 +537,6 @@
     </div>
     
     <div class="info-wrapper">
-      <button type="button" class="info-btn" id="infoBtn" onclick="toggleInfoTooltip(event)">?</button>
       <div class="info-tooltip" id="infoTooltip">
         <div class="info-tooltip-title">Info Sinkronisasi Akun</div>
         <div class="info-tooltip-text">
@@ -611,25 +557,21 @@
 
         <div class="form-wrapper">
           <form id="loginForm" class="auth-form fade-in" onsubmit="handleLogin(event)" novalidate>
-            <div class="form-group" id="groupLoginEmail">
+            <div class="form-group">
               <label class="form-label">Email</label>
-              <input type="email" id="loginEmail" class="form-input" placeholder="Masukkan email" autocomplete="off" oninput="hideTooltip(this)">
-              <div class="field-tooltip" id="tooltipLoginEmail">Harap isi email!</div>
+              <input type="email" id="loginEmail" class="form-input" placeholder="Masukkan email" data-original-placeholder="Masukkan email" autocomplete="off" oninput="resetFieldError(this)">
             </div>
 
-            <div class="form-group" id="groupLoginPassword">
+            <div class="form-group">
               <label class="form-label">Password</label>
-              <input type="password" id="loginPassword" class="form-input" placeholder="Masukkan password" oninput="hideTooltip(this)">
-              <div class="field-tooltip" id="tooltipLoginPassword">Harap isi password!</div>
+              <input type="password" id="loginPassword" class="form-input" placeholder="Masukkan password" data-original-placeholder="Masukkan password" oninput="resetFieldError(this)">
             </div>
 
-            <div class="form-group" id="groupLoginCaptcha">
+            <div class="form-group">
               <label class="form-label">Verifikasi Captcha</label>
-              <div class="captcha-box">
-                <div class="captcha-question" id="loginCaptchaLabel">0 + 0 = ?</div>
-                <input type="number" id="loginCaptchaInput" class="form-input" placeholder="Hasil" autocomplete="off" oninput="hideTooltip(this)">
+              <div class="recaptcha-wrapper" id="loginCaptchaContainer">
+                <div class="g-recaptcha" data-sitekey="6Lfmn6ctAAAAAHHlgDoDhOQp4rpG8fJXqlpm7Ghd" data-theme="dark" data-callback="onCaptchaSuccess" data-expired-callback="onCaptchaExpired"></div>
               </div>
-              <div class="field-tooltip" id="tooltipLoginCaptcha">Isi jawaban captcha!</div>
             </div>
 
             <button type="submit" class="submit-btn" id="loginBtn">Masuk</button>
@@ -645,50 +587,36 @@
           </form>
 
           <form id="registerForm" class="auth-form hidden" onsubmit="handleRegister(event)" novalidate>
-            <div class="form-group" id="groupRegEmail">
+            <div class="form-group">
               <label class="form-label">Email</label>
-              <input type="email" id="regEmail" class="form-input" placeholder="contoh@email.com" autocomplete="off" oninput="hideTooltip(this)">
-              <div class="field-tooltip" id="tooltipRegEmail">Isi alamat email!</div>
+              <input type="email" id="regEmail" class="form-input" placeholder="contoh@email.com" data-original-placeholder="contoh@email.com" autocomplete="off" oninput="resetFieldError(this)">
             </div>
 
-            <div class="form-group" id="groupRegPassword">
+            <div class="form-group">
               <label class="form-label">Password</label>
-              <input type="password" id="regPassword" class="form-input" placeholder="Buat password" oninput="hideTooltip(this)">
-              <div class="field-tooltip" id="tooltipRegPassword">Password wajib diisi!</div>
+              <input type="password" id="regPassword" class="form-input" placeholder="Buat password" data-original-placeholder="Buat password" oninput="resetFieldError(this)">
             </div>
 
-            <div class="form-group" id="groupRegCaptcha">
+            <div class="form-group">
               <label class="form-label">Verifikasi Captcha</label>
-              <div class="captcha-box">
-                <div class="captcha-question" id="regCaptchaLabel">0 + 0 = ?</div>
-                <input type="number" id="regCaptchaInput" class="form-input" placeholder="Hasil" autocomplete="off" oninput="hideTooltip(this)">
+              <div class="recaptcha-wrapper" id="regCaptchaContainer">
+                <div class="g-recaptcha" data-sitekey="6Lfmn6ctAAAAAHHlgDoDhOQp4rpG8fJXqlpm7Ghd" data-theme="dark" data-callback="onCaptchaSuccess" data-expired-callback="onCaptchaExpired"></div>
               </div>
-              <div class="field-tooltip" id="tooltipRegCaptcha">Isi jawaban captcha!</div>
             </div>
 
-            <label class="privacy-group" id="groupRegPrivacy">
+            <label class="privacy-group">
               <div class="checkbox-wrapper">
-                <input type="checkbox" id="regPrivacy" class="privacy-checkbox" onchange="hideTooltip(this)">
+                <input type="checkbox" id="regPrivacy" class="privacy-checkbox" onchange="resetPrivacyError()">
                 <div class="checkbox-icon">
                   <svg viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 </div>
               </div>
-              <span class="privacy-label">Saya menyetujui <u>Kebijakan Privasi</u> Mineplay.</span>
-              <div class="field-tooltip" id="tooltipRegPrivacy" style="bottom: 100%;">Centang persetujuan ini!</div>
+              <span class="privacy-label" id="privacyLabel">Saya menyetujui <u>Kebijakan Privasi</u> Mineplay.</span>
             </label>
 
             <button type="submit" class="submit-btn" id="regBtn">Buat Akun</button>
-            <button type="button" class="google-btn" onclick="handleGoogleLogin()">
-              <svg viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-              </svg>
-              Daftar dengan Google
-            </button>
           </form>
         </div>
       </div>
@@ -737,13 +665,6 @@
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
 
-    let captchaAnswers = {
-      login: 0,
-      register: 0
-    };
-
-    let tooltipTimer = null;
-
     function isValidEmail(email) {
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailPattern.test(email);
@@ -757,68 +678,64 @@
       }
     };
 
-    window.toggleInfoTooltip = function(e) {
-      e.stopPropagation();
-      const tooltip = document.getElementById('infoTooltip');
-      tooltip.classList.toggle('show');
-    };
-
-    document.addEventListener('click', function(e) {
-      const tooltip = document.getElementById('infoTooltip');
-      const infoBtn = document.getElementById('infoBtn');
-      if (tooltip && !tooltip.contains(e.target) && e.target !== infoBtn) {
-        tooltip.classList.remove('show');
-      }
-      clearAllTooltips();
-    });
-
-    function generateCaptcha(type) {
-      const num1 = Math.floor(Math.random() * 9) + 1;
-      const num2 = Math.floor(Math.random() * 9) + 1;
-      captchaAnswers[type] = num1 + num2;
-      
-      const labelEl = document.getElementById(type === 'login' ? 'loginCaptchaLabel' : 'regCaptchaLabel');
-      if (labelEl) {
-        labelEl.innerText = `${num1} + ${num2} = ?`;
-      }
+    function setFieldError(inputId, message) {
+      const inputEl = document.getElementById(inputId);
+      if (!inputEl) return;
+      inputEl.value = '';
+      inputEl.placeholder = message;
+      inputEl.classList.add('input-error');
+      inputEl.focus();
     }
 
-    window.showFieldTooltip = function(inputId, tooltipId, message) {
-      clearAllTooltips();
-      const inputEl = document.getElementById(inputId);
-      const tooltipEl = document.getElementById(tooltipId);
-
-      if (message) tooltipEl.innerText = message;
-      
-      tooltipEl.classList.add('show');
-      if (inputEl && typeof inputEl.focus === 'function') {
-        inputEl.focus();
-      }
-
-      if (tooltipTimer) clearTimeout(tooltipTimer);
-      tooltipTimer = setTimeout(() => {
-        tooltipEl.classList.remove('show');
-      }, 3000);
-    };
-
-    window.hideTooltip = function(inputEl) {
-      const parent = inputEl.closest('.form-group') || inputEl.closest('.privacy-group');
-      if (parent) {
-        const tooltip = parent.querySelector('.field-tooltip');
-        if (tooltip) tooltip.classList.remove('show');
+    window.resetFieldError = function(inputEl) {
+      inputEl.classList.remove('input-error');
+      if (inputEl.dataset.originalPlaceholder) {
+        inputEl.placeholder = inputEl.dataset.originalPlaceholder;
       }
     };
 
-    function clearAllTooltips() {
-      document.querySelectorAll('.field-tooltip').forEach(t => t.classList.remove('show'));
+    window.resetPrivacyError = function() {
+      const label = document.getElementById('privacyLabel');
+      if (label) label.classList.remove('label-error');
+    };
+
+    function setCaptchaError(containerId) {
+      const el = document.getElementById(containerId);
+      if (el) el.classList.add('recaptcha-error');
+    }
+
+    function resetCaptchaError() {
+      document.querySelectorAll('.recaptcha-wrapper').forEach(el => el.classList.remove('recaptcha-error'));
+    }
+
+    window.onCaptchaSuccess = function() {
+      resetCaptchaError();
+    };
+
+    window.onCaptchaExpired = function() {
+      if (typeof grecaptcha !== 'undefined') {
+        grecaptcha.reset();
+      }
+    };
+
+    function resetAllErrors() {
+      document.querySelectorAll('.form-input').forEach(input => {
+        resetFieldError(input);
+      });
+      resetPrivacyError();
+      resetCaptchaError();
     }
 
     window.switchTab = function(type) {
-      clearAllTooltips();
+      resetAllErrors();
       const tabLogin = document.getElementById('tabLogin');
       const tabRegister = document.getElementById('tabRegister');
       const loginForm = document.getElementById('loginForm');
       const registerForm = document.getElementById('registerForm');
+
+      if (typeof grecaptcha !== 'undefined') {
+        grecaptcha.reset();
+      }
 
       if (type === 'login') {
         if (tabLogin.classList.contains('active')) return;
@@ -831,8 +748,6 @@
         loginForm.classList.remove('hidden');
         void loginForm.offsetWidth;
         loginForm.classList.add('fade-in');
-
-        generateCaptcha('login');
       } else {
         if (tabRegister.classList.contains('active')) return;
         tabRegister.classList.add('active');
@@ -844,8 +759,6 @@
         registerForm.classList.remove('hidden');
         void registerForm.offsetWidth;
         registerForm.classList.add('fade-in');
-
-        generateCaptcha('register');
       }
     };
 
@@ -861,43 +774,35 @@
       } else {
         authForms.style.display = 'block';
         loggedInBox.style.display = 'none';
-        generateCaptcha('login');
       }
     });
 
     window.handleLogin = async function(e) {
       e.preventDefault();
-      clearAllTooltips();
+      resetAllErrors();
 
       const emailInput = document.getElementById('loginEmail').value.trim();
       const passwordInput = document.getElementById('loginPassword').value;
-      const captchaInput = document.getElementById('loginCaptchaInput').value.trim();
+      const captchaResponse = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse(0) : '';
       const btn = document.getElementById('loginBtn');
 
       if (!emailInput) {
-        showFieldTooltip('loginEmail', 'tooltipLoginEmail', 'Harap isi email!');
+        setFieldError('loginEmail', 'Ini wajib diisi!');
         return;
       }
 
       if (!isValidEmail(emailInput)) {
-        showFieldTooltip('loginEmail', 'tooltipLoginEmail', 'Format email tidak valid!');
+        setFieldError('loginEmail', 'Format email tidak valid!');
         return;
       }
 
       if (!passwordInput) {
-        showFieldTooltip('loginPassword', 'tooltipLoginPassword', 'Password wajib diisi!');
+        setFieldError('loginPassword', 'Ini wajib diisi!');
         return;
       }
 
-      if (!captchaInput) {
-        showFieldTooltip('loginCaptchaInput', 'tooltipLoginCaptcha', 'Hitung captcha dulu!');
-        return;
-      }
-
-      if (parseInt(captchaInput, 10) !== captchaAnswers.login) {
-        showFieldTooltip('loginCaptchaInput', 'tooltipLoginCaptcha', 'Jawaban salah!');
-        generateCaptcha('login');
-        document.getElementById('loginCaptchaInput').value = '';
+      if (!captchaResponse) {
+        setCaptchaError('loginCaptchaContainer');
         return;
       }
 
@@ -908,13 +813,12 @@
         await signInWithEmailAndPassword(auth, emailInput, passwordInput);
         setTimeout(() => handleGoBack(), 300);
       } catch (err) {
-        console.error(err);
         if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-          showFieldTooltip('loginPassword', 'tooltipLoginPassword', 'Email atau password salah!');
+          setFieldError('loginPassword', 'Email atau password salah!');
         } else {
-          showFieldTooltip('loginBtn', 'tooltipLoginEmail', 'Gagal login. Cek koneksi.');
+          setFieldError('loginEmail', 'Gagal login. Cek koneksi.');
         }
-        generateCaptcha('login');
+        if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
       } finally {
         btn.disabled = false;
         btn.innerText = 'Masuk';
@@ -923,48 +827,43 @@
 
     window.handleRegister = async function(e) {
       e.preventDefault();
-      clearAllTooltips();
+      resetAllErrors();
 
       const emailInput = document.getElementById('regEmail').value.trim();
       const passwordInput = document.getElementById('regPassword').value;
-      const captchaInput = document.getElementById('regCaptchaInput').value.trim();
+      const captchaResponse = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse(1) : '';
       const privacyCheck = document.getElementById('regPrivacy').checked;
       const btn = document.getElementById('regBtn');
 
       if (!emailInput) {
-        showFieldTooltip('regEmail', 'tooltipRegEmail', 'Email wajib diisi!');
+        setFieldError('regEmail', 'Ini wajib diisi!');
         return;
       }
 
       if (!isValidEmail(emailInput)) {
-        showFieldTooltip('regEmail', 'tooltipRegEmail', 'Format email tidak valid!');
+        setFieldError('regEmail', 'Format email tidak valid!');
         return;
       }
 
       if (!passwordInput) {
-        showFieldTooltip('regPassword', 'tooltipRegPassword', 'Buat password kamu!');
+        setFieldError('regPassword', 'Ini wajib diisi!');
         return;
       }
 
       if (passwordInput.length < 6) {
-        showFieldTooltip('regPassword', 'tooltipRegPassword', 'Password minimal 6 karakter!');
+        setFieldError('regPassword', 'Minimal 6 karakter!');
         return;
       }
 
-      if (!captchaInput) {
-        showFieldTooltip('regCaptchaInput', 'tooltipRegCaptcha', 'Hitung captcha dulu!');
-        return;
-      }
-
-      if (parseInt(captchaInput, 10) !== captchaAnswers.register) {
-        showFieldTooltip('regCaptchaInput', 'tooltipRegCaptcha', 'Jawaban captcha salah!');
-        generateCaptcha('register');
-        document.getElementById('regCaptchaInput').value = '';
+      if (!captchaResponse) {
+        setCaptchaError('regCaptchaContainer');
         return;
       }
 
       if (!privacyCheck) {
-        showFieldTooltip('regPrivacy', 'tooltipRegPrivacy', 'Setujui syarat & ketentuan dulu!');
+        const privacyLabel = document.getElementById('privacyLabel');
+        if (privacyLabel) privacyLabel.classList.add('label-error');
+        document.getElementById('regPrivacy').focus();
         return;
       }
 
@@ -975,13 +874,12 @@
         await createUserWithEmailAndPassword(auth, emailInput, passwordInput);
         setTimeout(() => handleGoBack(), 300);
       } catch (err) {
-        console.error(err);
         if (err.code === 'auth/email-already-in-use') {
-          showFieldTooltip('regEmail', 'tooltipRegEmail', 'Email sudah terdaftar!');
+          setFieldError('regEmail', 'Email sudah terdaftar!');
         } else {
-          showFieldTooltip('regBtn', 'tooltipRegEmail', 'Gagal mendaftar. Cek koneksi.');
+          setFieldError('regEmail', 'Gagal mendaftar. Cek koneksi.');
         }
-        generateCaptcha('register');
+        if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
       } finally {
         btn.disabled = false;
         btn.innerText = 'Buat Akun';
@@ -993,8 +891,7 @@
         await signInWithPopup(auth, googleProvider);
         setTimeout(() => handleGoBack(), 300);
       } catch (err) {
-        console.error("Gagal login Google:", err);
-        alert("Gagal melakukan login dengan Google.");
+        setFieldError('loginEmail', 'Gagal login Google.');
       }
     };
 
@@ -1003,15 +900,12 @@
         await signOut(auth);
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
-        document.getElementById('loginCaptchaInput').value = '';
         document.getElementById('regEmail').value = '';
         document.getElementById('regPassword').value = '';
-        document.getElementById('regCaptchaInput').value = '';
         document.getElementById('regPrivacy').checked = false;
+        if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
         switchTab('login');
-      } catch (err) {
-        console.error("Gagal logout:", err);
-      }
+      } catch (err) {}
     };
   </script>
 </body>
