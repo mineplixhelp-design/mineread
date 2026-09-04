@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profile</title>
   
+  <!-- Swiper.js CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
   <style>
     @font-face {
       font-family: 'Plus Jakarta Sans';
@@ -110,7 +113,7 @@
       display: flex;
       gap: 8px;
       padding: 10px 20px 0;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       background-color: var(--bg-color);
       flex-shrink: 0;
       position: relative;
@@ -124,6 +127,8 @@
     }
 
     .tab-btn {
+      flex: 1;
+      text-align: center;
       font-size: 16px;
       font-weight: 700;
       color: var(--text-muted-color);
@@ -132,10 +137,9 @@
       white-space: nowrap;
       cursor: pointer;
       position: relative;
-      transition: color 0.3s ease;
+      transition: color 0.3s ease, border-color 0.3s ease;
       border-bottom: 2px solid transparent;
       overflow: hidden;
-      flex-shrink: 0;
     }
 
     .tab-btn.active {
@@ -152,16 +156,13 @@
       padding-top: 86px;
     }
 
-    .tab-content-container {
+    /* Swiper Container Layout */
+    .swiper {
       width: 100%;
       height: 100%;
-      position: relative;
-      overflow: hidden;
     }
 
-    .tab-page {
-      display: none;
-      width: 100%;
+    .swiper-slide {
       height: 100%;
       overflow-y: auto;
       padding: 16px 20px 40px;
@@ -170,30 +171,12 @@
       box-sizing: border-box;
     }
 
-    .tab-page.active {
-      display: block;
-    }
-
-    .tab-page::-webkit-scrollbar {
+    .swiper-slide::-webkit-scrollbar {
       display: none;
     }
 
-    #tab-bookmark, #tab-history {
+    #tab-bookmark {
       padding: 0;
-    }
-
-    .sub-scroll-area {
-      height: 100%;
-      position: relative;
-      overflow-y: auto;
-      padding: 20px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      box-sizing: border-box;
-    }
-
-    .sub-scroll-area::-webkit-scrollbar {
-      display: none;
     }
 
     .profile-card {
@@ -204,8 +187,8 @@
       position: relative;
       overflow: hidden;
       border: none;
+      border-radius: 16px;
       background-color: var(--surface-color);
-      border-radius: 12px;
     }
 
     .user-info {
@@ -232,7 +215,7 @@
       font-size: 16px;
       font-weight: 700;
       color: var(--text-muted-color);
-      margin: 14px 6px 14px 6px;
+      margin: 20px 6px 14px 6px;
     }
 
     .menu-group {
@@ -335,10 +318,10 @@
       fill: var(--text-color);
     }
 
-    .bookmark-list, .history-list {
+    .bookmark-list {
       display: flex;
       flex-direction: column;
-      padding: 10px 10px 40px;
+      padding: 10px 20px 40px;
     }
 
     .content-card {
@@ -496,80 +479,83 @@
 
   <header class="app-header" id="appHeader">
     <div class="app-title">Profile</div>
-    <button class="header-action-btn" id="crownBtn" onclick="navigateTo('prem.html')" aria-label="Premium">
+    <button class="header-action-btn" id="crownBtn" onclick="navigateTo('https://mineread.vercel.app/apps/bridge/prem.html')" aria-label="Premium">
       <svg viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
     </button>
   </header>
 
   <div class="content-wrapper">
     <div class="tab-bar">
-      <button class="tab-btn active" id="btn-tab-0" onclick="switchTabByIndex(0)">About</button>
-      <button class="tab-btn" id="btn-tab-1" onclick="switchTabByIndex(1)">Bookmark</button>
-      <button class="tab-btn" id="btn-tab-2" onclick="switchTabByIndex(2)">Histori</button>
+      <button class="tab-btn active" id="btn-tab-0" onclick="switchTab(0)">About</button>
+      <button class="tab-btn" id="btn-tab-1" onclick="switchTab(1)">Bookmark</button>
     </div>
 
-    <div class="tab-content-container">
-      
-      <div class="tab-page active" id="tab-account">
-        <div class="profile-card" id="profileCard">
-          <div class="user-info">
-            <div class="user-name" id="userName">Tamu Mineplay</div>
-            <div class="user-email" id="userEmail">Belum masuk akun</div>
+    <!-- Swiper Container -->
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper">
+        
+        <!-- Slide 1: About -->
+        <div class="swiper-slide" id="tab-account">
+          <div class="profile-card" id="profileCard">
+            <div class="user-info">
+              <div class="user-name" id="userName">Tamu Mineplay</div>
+              <div class="user-email" id="userEmail">Belum masuk akun</div>
+            </div>
+          </div>
+
+          <div class="section-title">Informasi & Bantuan</div>
+          <div class="menu-group">
+
+            <div class="menu-item" onclick="navigateTo('update.html')">
+              <div class="menu-item-left">
+                <div class="icon-badge">
+                  <svg class="menu-item-icon" viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+                </div>
+                <span class="menu-item-label">Pembaruan</span>
+              </div>
+              <svg class="menu-item-arrow" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
+
+            <div class="menu-item" onclick="navigateTo('info.html#info')">
+              <div class="menu-item-left">
+                <div class="icon-badge">
+                  <svg class="menu-item-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </div>
+                <span class="menu-item-label">Info Aplikasi</span>
+              </div>
+              <svg class="menu-item-arrow" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
+
+            <div class="menu-item" onclick="navigateTo('info.html#privacy')">
+              <div class="menu-item-left">
+                <div class="icon-badge">
+                  <svg class="menu-item-icon" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                </div>
+                <span class="menu-item-label">Kebijakan Privasi</span>
+              </div>
+              <svg class="menu-item-arrow" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
+          </div>
+
+          <div class="action-btn-wrapper">
+            <button class="btn-action" id="authActionButton" onclick="handleAuthAction()">
+              <svg id="authActionIcon" viewBox="0 0 24 24"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
+              <span id="authActionText">Login</span>
+            </button>
           </div>
         </div>
 
-        <div class="section-title">Informasi & Bantuan</div>
-        <div class="menu-group">
-
-          <div class="menu-item" onclick="navigateTo('update.html')">
-            <div class="menu-item-left">
-              <div class="icon-badge">
-                <svg class="menu-item-icon" viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
-              </div>
-              <span class="menu-item-label">Pembaruan</span>
-            </div>
-            <svg class="menu-item-arrow" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
-          </div>
-
-          <div class="menu-item" onclick="navigateTo('info.html#info')">
-            <div class="menu-item-left">
-              <div class="icon-badge">
-                <svg class="menu-item-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-              </div>
-              <span class="menu-item-label">Info Aplikasi</span>
-            </div>
-            <svg class="menu-item-arrow" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
-          </div>
-
-          <div class="menu-item" onclick="navigateTo('info.html#privacy')">
-            <div class="menu-item-left">
-              <div class="icon-badge">
-                <svg class="menu-item-icon" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-              </div>
-              <span class="menu-item-label">Kebijakan Privasi</span>
-            </div>
-            <svg class="menu-item-arrow" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
-          </div>
+        <!-- Slide 2: Bookmark -->
+        <div class="swiper-slide" id="tab-bookmark">
+          <div class="bookmark-list" id="bookmarkList"></div>
         </div>
 
-        <div class="action-btn-wrapper">
-          <button class="btn-action" id="authActionButton" onclick="handleAuthAction()">
-            <svg id="authActionIcon" viewBox="0 0 24 24"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
-            <span id="authActionText">Login</span>
-          </button>
-        </div>
       </div>
-
-      <div class="tab-page" id="tab-bookmark">
-        <div class="bookmark-list" id="bookmarkList"></div>
-      </div>
-
-      <div class="tab-page" id="tab-history">
-        <div class="history-list" id="historyList"></div>
-      </div>
-
     </div>
   </div>
+
+  <!-- Swiper.js Script -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -598,7 +584,6 @@
     const db = getDatabase(app);
     const auth = getAuth(app);
 
-    // Paksa Firebase Auth menyimpan sesi di browser Local Storage / IndexedDB
     setPersistence(auth, indexedDBLocalPersistence).catch(() => {
       setPersistence(auth, browserLocalPersistence);
     });
@@ -607,12 +592,8 @@
     let isLoggedIn = false;
     let currentUser = null;
     let unsubscribeBookmark = null;
-    let unsubscribeHistory = null;
-    let currentTabIndex = 0;
-    const TOTAL_TABS = 3;
 
     let allBookmarks = [];
-    let allHistory = [];
 
     const STATUS_ICONS = {
       COMPLETED: `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`,
@@ -644,6 +625,29 @@
         }
       }
     `;
+
+    // Inisialisasi Swiper
+    const swiper = new Swiper('.mySwiper', {
+      initialSlide: 0,
+      spaceBetween: 0,
+      speed: 300,
+      on: {
+        slideChange: function () {
+          updateActiveTab(this.activeIndex);
+        }
+      }
+    });
+
+    window.switchTab = function(index) {
+      swiper.slideTo(index);
+    };
+
+    function updateActiveTab(index) {
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      tabBtns.forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
+    }
 
     function getStatusIcon(status) {
       if (!status) return STATUS_ICONS.DEFAULT;
@@ -681,10 +685,6 @@
       if (typeof unsubscribeBookmark === 'function') {
         unsubscribeBookmark();
         unsubscribeBookmark = null;
-      }
-      if (typeof unsubscribeHistory === 'function') {
-        unsubscribeHistory();
-        unsubscribeHistory = null;
       }
     }
 
@@ -733,42 +733,6 @@
         `;
         list.appendChild(skeletonCard);
       }
-    }
-
-    function parseLocalStorageHistory() {
-      const historyItemsMap = {};
-
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('histori_')) {
-          const rawId = key.replace('histori_', '').trim();
-          const parsedId = parseInt(rawId, 10);
-          if (isNaN(parsedId)) continue;
-
-          const val = localStorage.getItem(key) || '';
-          const parts = val.split(':');
-
-          let chapterName = '';
-          let pageNum = '';
-
-          if (parts.length >= 4) {
-            chapterName = parts[2].replace('chapter=', '').trim();
-            pageNum = parts[3].trim();
-          } else if (parts.length === 3) {
-            chapterName = parts[1].replace('chapter=', '').trim();
-            pageNum = parts[2].trim();
-          }
-
-          historyItemsMap[parsedId] = {
-            id: parsedId,
-            chapterName: chapterName,
-            pageNum: pageNum,
-            updatedAt: Date.now()
-          };
-        }
-      }
-
-      return historyItemsMap;
     }
 
     function renderBookmarks() {
@@ -843,74 +807,6 @@
       initRipples();
     }
 
-    function renderHistory() {
-      const list = document.getElementById('historyList');
-      if (!list) return;
-      list.innerHTML = '';
-
-      if (allHistory.length === 0) {
-        list.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-title">Belum Ada Riwayat</div>
-            <div class="empty-state-sub">Riwayat komik yang kamu baca akan muncul di sini.</div>
-          </div>
-        `;
-        return;
-      }
-
-      allHistory.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'content-card';
-        
-        const titleText = item.title?.userPreferred || item.title?.english || item.title?.romaji || 'Tanpa Judul';
-        const coverUrl = item.coverImage?.medium || item.coverImage?.large || item.coverImage?.extraLarge || '';
-        
-        let progressLabel = 'Terakhir Dibaca';
-        if (item.chapterName && item.pageNum) {
-          progressLabel = `Progres ${item.chapterName} Halaman ${item.pageNum}`;
-        } else if (item.chapterName) {
-          progressLabel = `Ch. ${item.chapterName}`;
-        } else if (item.lastChapter) {
-          progressLabel = `Ch. ${item.lastChapter}`;
-        }
-
-        card.innerHTML = `
-          <div class="content-card-left">
-            <div class="cover-container skeleton">
-              ${coverUrl ? `<img class="cover-img" src="${coverUrl}" alt="${titleText}" loading="lazy">` : ''}
-            </div>
-            <div class="card-info">
-              <div class="card-title">${titleText}</div>
-              <div class="card-subtext">${progressLabel}</div>
-            </div>
-          </div>
-        `;
-
-        const img = card.querySelector('.cover-img');
-        const container = card.querySelector('.cover-container');
-
-        if (img && coverUrl) {
-          img.onload = () => {
-            container.classList.remove('skeleton');
-            img.classList.add('loaded');
-          };
-          img.onerror = () => {
-            container.classList.remove('skeleton');
-          };
-        } else {
-          container.classList.remove('skeleton');
-        }
-
-        card.addEventListener('click', () => {
-          window.navigateTo(`https://mineread.vercel.app/apps/bridge/read.html#${item.id}`);
-        });
-
-        list.appendChild(card);
-      });
-
-      initRipples();
-    }
-
     function listenToUserBookmarks(uid) {
       renderSkeletons('bookmarkList');
 
@@ -971,83 +867,6 @@
       });
     }
 
-    function loadAndListenUserHistory(uid) {
-      renderSkeletons('historyList');
-
-      const localHistoryMap = parseLocalStorageHistory();
-
-      const processAndRender = async (combinedMap) => {
-        const itemsList = Object.values(combinedMap);
-
-        if (itemsList.length === 0) {
-          allHistory = [];
-          renderHistory();
-          return;
-        }
-
-        itemsList.sort((a, b) => b.updatedAt - a.updatedAt);
-
-        const ids = itemsList.map(item => item.id);
-        const aniListDataMap = await fetchAniListDetails(ids);
-
-        allHistory = itemsList.map(item => {
-          const aniData = aniListDataMap[item.id] || {};
-          return {
-            id: item.id,
-            chapterName: item.chapterName || '',
-            pageNum: item.pageNum || '',
-            lastChapter: item.lastChapter || '',
-            lastChapterId: item.lastChapterId || '',
-            updatedAt: item.updatedAt || 0,
-            title: aniData.title || {},
-            coverImage: aniData.coverImage || {}
-          };
-        });
-
-        renderHistory();
-      };
-
-      if (!uid) {
-        processAndRender(localHistoryMap);
-        return;
-      }
-
-      const historyRef = ref(db, `read_history/${uid}`);
-
-      unsubscribeHistory = onValue(historyRef, async (snapshot) => {
-        const data = snapshot.val();
-        const mergedMap = { ...localHistoryMap };
-
-        if (data) {
-          Object.keys(data).forEach(mangaId => {
-            const item = data[mangaId];
-            if (item) {
-              const parsedId = parseInt(mangaId, 10);
-              if (!isNaN(parsedId)) {
-                const fbTimestamp = item.updatedAt || item.timestamp || 0;
-                const existing = mergedMap[parsedId];
-
-                if (!existing || fbTimestamp >= existing.updatedAt) {
-                  mergedMap[parsedId] = {
-                    id: parsedId,
-                    chapterName: item.lastChapter || item.chapter || (existing ? existing.chapterName : ''),
-                    pageNum: existing ? existing.pageNum : '',
-                    lastChapterId: item.lastChapterId || item.chapterId || '',
-                    updatedAt: fbTimestamp
-                  };
-                }
-              }
-            }
-          });
-        }
-
-        processAndRender(mergedMap);
-      }, (error) => {
-        console.error("Gagal mengambil histori:", error);
-        processAndRender(localHistoryMap);
-      });
-    }
-
     function renderUserData(user) {
       isLoggedIn = true;
       currentUser = user;
@@ -1067,7 +886,6 @@
       isLoggedIn = false;
       currentUser = null;
       allBookmarks = [];
-      allHistory = [];
       
       document.getElementById('userName').innerText = "Tamu Mineplay";
       document.getElementById('userEmail').innerText = "Belum masuk akun";
@@ -1079,27 +897,22 @@
       icon.innerHTML = `<path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/>`;
 
       renderBookmarks();
-      loadAndListenUserHistory(null);
     }
 
-    // Mendengarkan perubahan status login
     onAuthStateChanged(auth, (user) => {
       detachListeners();
       if (user) {
         renderUserData(user);
         listenToUserBookmarks(user.uid);
-        loadAndListenUserHistory(user.uid);
       } else {
         renderGuestData();
       }
     });
 
-    // Menangani kembali ke halaman ketika halaman berada di background WebView
     window.addEventListener('pageshow', (event) => {
       if (auth.currentUser) {
         renderUserData(auth.currentUser);
         if (!unsubscribeBookmark) listenToUserBookmarks(auth.currentUser.uid);
-        if (!unsubscribeHistory) loadAndListenUserHistory(auth.currentUser.uid);
       }
     });
 
@@ -1116,29 +929,9 @@
       }
     };
 
-    window.switchTabByIndex = function(index) {
-      if (index < 0 || index >= TOTAL_TABS) return;
-      currentTabIndex = index;
-
-      const tabBtns = document.querySelectorAll('.tab-btn');
-      tabBtns.forEach((btn, i) => {
-        btn.classList.toggle('active', i === currentTabIndex);
-      });
-
-      const pages = document.querySelectorAll('.tab-page');
-      pages.forEach((page, i) => {
-        page.classList.toggle('active', i === currentTabIndex);
-      });
-
-      const activeBtn = document.getElementById(`btn-tab-${currentTabIndex}`);
-      if (activeBtn) {
-        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      }
-    };
-
     function initHeaderScrollEffect() {
       const appHeader = document.getElementById('appHeader');
-      const scrollContents = document.querySelectorAll('.tab-page, .sub-scroll-area');
+      const scrollContents = document.querySelectorAll('.swiper-slide');
 
       scrollContents.forEach(el => {
         el.addEventListener('scroll', () => {
