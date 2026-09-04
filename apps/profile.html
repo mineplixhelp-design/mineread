@@ -205,6 +205,7 @@
       overflow: hidden;
       border: none;
       background-color: var(--surface-color);
+      border-radius: 12px;
     }
 
     .user-info {
@@ -512,7 +513,7 @@
       <div class="tab-page active" id="tab-account">
         <div class="profile-card" id="profileCard">
           <div class="user-info">
-            <div class="user-name" id="userName">Tamu</div>
+            <div class="user-name" id="userName">Tamu Mineplay</div>
             <div class="user-email" id="userEmail">Belum masuk akun</div>
           </div>
         </div>
@@ -573,6 +574,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCfCDgff5nwMYCx1EBDJEoJ8gzxKQ9Y__U",
@@ -587,11 +589,11 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const auth = getAuth(app);
 
     const ANILIST_API_URL = 'https://graphql.anilist.co';
     let isLoggedIn = false;
-    let currentActiveUsername = null;
-    let unsubscribeAccount = null;
+    let currentUser = null;
     let unsubscribeBookmark = null;
     let unsubscribeHistory = null;
     let currentTabIndex = 0;
@@ -604,7 +606,7 @@
       COMPLETED: `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`,
       READING: `<svg viewBox="0 0 24 24"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.13-1.3 4.85-1.42.59-.04 1.15-.14 1.65-.25.3-.07.5-.33.5-.63V5zm-2 12.8c-.85.12-1.78.2-2.7.2-1.7 0-3.35-.35-4.8-.95V7.4c1.45.6 3.1 1.05 4.8 1.05 1.03 0 2.02-.15 2.7-.35v9.9z"/></svg>`,
       PLANNING: `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`,
-      DROPPED: `<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`,
+      DROPPED: `<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 13.41 12z"/></svg>`,
       PAUSED: `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`,
       REPEATING: `<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.97 20 14.05 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 8.74C4.46 10.03 4 11.95 4 14c0 4.42 3.58 8 8 8v4l5-5-5-5v3z"/></svg>`,
       DEFAULT: `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`
@@ -637,13 +639,8 @@
       return STATUS_ICONS[key] || STATUS_ICONS.DEFAULT;
     }
 
-    function sanitizeUsername(username) {
-      if (!username) return '';
-      return username.replace(/[.#$[\]]/g, "_");
-    }
-
     function maskEmail(email) {
-      if (!email || !email.includes('@')) return email;
+      if (!email || !email.includes('@')) return email || '';
       const [name, domain] = email.split('@');
       if (name.length <= 3) {
         return `${name.charAt(0)}.....@${domain}`;
@@ -669,10 +666,6 @@
     };
 
     function detachListeners() {
-      if (typeof unsubscribeAccount === 'function') {
-        unsubscribeAccount();
-        unsubscribeAccount = null;
-      }
       if (typeof unsubscribeBookmark === 'function') {
         unsubscribeBookmark();
         unsubscribeBookmark = null;
@@ -906,11 +899,10 @@
       initRipples();
     }
 
-    function listenToUserBookmarks(username) {
-      const cleanUser = sanitizeUsername(username);
+    function listenToUserBookmarks(uid) {
       renderSkeletons('bookmarkList');
 
-      const userMangaRef = ref(db, `save_manga/${cleanUser}`);
+      const userMangaRef = ref(db, `save_manga/${uid}`);
       unsubscribeBookmark = onValue(userMangaRef, async (snapshot) => {
         const data = snapshot.val();
         if (!data) {
@@ -963,7 +955,7 @@
       });
     }
 
-    function loadAndListenUserHistory(username) {
+    function loadAndListenUserHistory(uid) {
       renderSkeletons('historyList');
 
       const localHistoryMap = parseLocalStorageHistory();
@@ -999,13 +991,12 @@
         renderHistory();
       };
 
-      if (!username) {
+      if (!uid) {
         processAndRender(localHistoryMap);
         return;
       }
 
-      const cleanUser = sanitizeUsername(username);
-      const historyRef = ref(db, `read_history/${cleanUser}`);
+      const historyRef = ref(db, `read_history/${uid}`);
 
       unsubscribeHistory = onValue(historyRef, async (snapshot) => {
         const data = snapshot.val();
@@ -1038,73 +1029,30 @@
       });
     }
 
-    function initUserSession() {
-      const savedUsername = localStorage.getItem('account:username');
-      let savedEmail = localStorage.getItem('account:email');
-
-      if (savedUsername === currentActiveUsername && isLoggedIn && savedUsername) {
-        loadAndListenUserHistory(savedUsername);
-        return;
-      }
-
-      detachListeners();
-      currentActiveUsername = savedUsername;
-
-      if (savedUsername) {
-        renderUserData({
-          name: savedUsername,
-          email: savedEmail ? maskEmail(savedEmail) : 'Memuat email...'
-        });
-
-        const accountRef = ref(db, `account/${savedUsername}`);
-        unsubscribeAccount = onValue(accountRef, (snapshot) => {
-          if (snapshot.exists()) {
-            const userData = snapshot.val();
-            const email = userData.email || savedEmail || 'Email tidak tersedia';
-
-            if (userData.email) {
-              localStorage.setItem('account:email', userData.email);
-            }
-
-            renderUserData({
-              name: savedUsername,
-              email: maskEmail(email)
-            });
-          }
-        });
-
-        listenToUserBookmarks(savedUsername);
-        loadAndListenUserHistory(savedUsername);
-      } else {
-        renderGuestData();
-      }
-    }
-
-    function renderUserData(data) {
+    function renderUserData(user) {
       isLoggedIn = true;
-      document.getElementById('userName').innerText = data.name;
-      document.getElementById('userEmail').innerText = data.email;
+      currentUser = user;
+      
+      const displayName = user.displayName || user.email?.split('@')[0] || "Pengguna";
+      document.getElementById('userName').innerText = displayName;
+      document.getElementById('userEmail').innerText = maskEmail(user.email);
 
-      const btn = document.getElementById('authActionButton');
       const text = document.getElementById('authActionText');
       const icon = document.getElementById('authActionIcon');
 
       text.innerText = "Keluar Akun";
       icon.innerHTML = `<path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>`;
-      
-      renderBookmarks();
     }
 
     function renderGuestData() {
       isLoggedIn = false;
-      currentActiveUsername = null;
+      currentUser = null;
       allBookmarks = [];
       allHistory = [];
       
       document.getElementById('userName').innerText = "Tamu Mineplay";
       document.getElementById('userEmail').innerText = "Belum masuk akun";
 
-      const btn = document.getElementById('authActionButton');
       const text = document.getElementById('authActionText');
       const icon = document.getElementById('authActionIcon');
 
@@ -1115,12 +1063,25 @@
       loadAndListenUserHistory(null);
     }
 
+    onAuthStateChanged(auth, (user) => {
+      detachListeners();
+      if (user) {
+        renderUserData(user);
+        listenToUserBookmarks(user.uid);
+        loadAndListenUserHistory(user.uid);
+      } else {
+        renderGuestData();
+      }
+    });
+
     window.handleAuthAction = function() {
       if (isLoggedIn) {
         detachListeners();
-        localStorage.removeItem('account:username');
-        localStorage.removeItem('account:email');
-        renderGuestData();
+        signOut(auth).then(() => {
+          renderGuestData();
+        }).catch((error) => {
+          console.error("Gagal logout: ", error);
+        });
       } else {
         window.navigateTo('https://mineread.vercel.app/apps/bridge/login.html');
       }
@@ -1203,23 +1164,8 @@
       }, 600);
     }
 
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'account:username' || e.key === 'account:email' || (e.key && e.key.startsWith('histori_'))) {
-        initUserSession();
-      }
-    });
-
-    window.addEventListener('pageshow', () => {
-      initUserSession();
-    });
-
-    window.addEventListener('focus', () => {
-      initUserSession();
-    });
-
     window.addEventListener('DOMContentLoaded', () => {
       initRipples();
-      initUserSession();
       initHeaderScrollEffect();
     });
   </script>
